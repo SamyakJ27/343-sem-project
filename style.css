@@ -1,0 +1,25 @@
+.createRepo {
+    background-color: lightblue;
+    padding: 20px;
+    text-align: center;
+}
+#cr {
+    padding: 10px;
+}
+.rollback {
+    background-color: lightcoral;
+    padding: 20px;
+    text-align: center;
+}
+
+.something {
+    background-color: rgb(220, 255, 220);
+    padding: 20px;
+    text-align: center;
+}
+
+.title {
+    text-align: center;
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
