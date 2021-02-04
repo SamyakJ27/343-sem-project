@@ -1,11 +1,18 @@
+body {
+    background-color: aliceblue;
+    background-image: url(water.jpg);
+}
+
 .createRepo {
     background-color: lightblue;
     padding: 20px;
     text-align: center;
 }
+
 #cr {
     padding: 10px;
 }
+
 .rollback {
     background-color: lightcoral;
     padding: 20px;
@@ -20,6 +27,28 @@
 
 .title {
     text-align: center;
+    font-size: 4rem;
+    text-shadow: 0 0 10px rgb(167, 7, 167);
     padding-bottom: 10px;
-    padding-top: 10px;
+
+}
+
+/*
+.title {
+    text-align: center;
+    font-size: 4rem;
+    text-shadow: 0 0 10px rgb(167, 7, 167);
+    padding-bottom: 10px;
+    background-image: url(water.jpg);
+    -webkit-background-clip: text;
+    color: transparent;
+}*/
+
+.pill {
+    border-radius: 25px;
+}
+
+h1,
+h4 {
+    display: inline;
 }

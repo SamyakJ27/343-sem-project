@@ -13,9 +13,11 @@
     function SomethingButton() {
         alert("Pushed Something");
     }
+
     function RollbackButton() {
         alert("Rollback Something");
     }
+
     function RepoButton() {
         alert("Repository Created");
     }
@@ -28,25 +30,27 @@
 
     <div class="title">
 
-        <h1>Title</h1>
-        <br>
+        <h1>Gung Hoes</h1>
+        <sup>
+            <h4>&#8482;</h4></sub>
+            <br>
     </div>
     <div class="createRepo">
         <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button id="cr" onclick="RepoButton()">Create Repository</button>
+        <button class="pill" id="cr" onclick="RepoButton()">Create Repository</button>
     </div>
 
     <div class="rollback">
         <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button id="cr" onclick = "RollbackButton()">Rollback</button>
+        <button class="pill" id="cr" onclick="RollbackButton()">Rollback</button>
     </div>
 
     <div class="something">
         <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button  id="cr" onclick = "SomethingButton()">Something</button>
+        <button class="pill" id="cr" onclick="SomethingButton()">Something</button>
     </div>
 
 </body>
