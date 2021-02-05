@@ -16,7 +16,7 @@ var app = express();  // Init an Express object.
 app.get('/', function (req, res) { // Set page-gen fcn for URL root request.
     //OBE res.send('Hello World!'); // Send webpage containing "Hello World!".
     // NB, need absolute path here (including correct drive location).
-    res.sendFile( 'D://csu//assets//js-node//myapp//js-1-edt.html' ); 
+    res.sendFile( './js-1.html', { root : __dirname } ); 
 });
 app.listen(3000, function () { // Set callback action fcn on network port.
     console.log('App.js listening on port 3000!');
