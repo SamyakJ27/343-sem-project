@@ -10,16 +10,16 @@
 
 <!--Button Functions-->
 <script>
-    function SomethingButton() {
-        alert("Pushed Something");
+    function PushButton() {
+        alert("Pushed Something\nRedirecting...");
     }
 
     function RollbackButton() {
-        alert("Rollback Something");
+        alert("Rollback Something\nRedirecting...");
     }
 
-    function RepoButton() {
-        alert("Repository Created");
+    function RepoButton() { 
+        alert("Repository Created\nRedirecting...");
     }
 </script>
 
@@ -36,22 +36,38 @@
             <h4>&#8482;</h4></sub>
             <br>
     </div>
+    <!-- Button Activation -->
     <div class="createRepo">
-        <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
+        <form action="/get_form_text" method="GET">
+            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <br><br>
+            <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repository" />
+        </form>
+        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button class="pill" id="cr" onclick="RepoButton()">Create Repository</button>
+        <button class="pill" id="cr" onclick="RepoButton()">Create Repository</button> -->
     </div>
 
     <div class="rollback">
-        <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
+        <form action="/get_form_text" method="GET">
+            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <br><br>
+            <input class="pill" id="cr" type="submit" onclick="RollbackButton()" value="Rollback" />
+        </form>
+        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button class="pill" id="cr" onclick="RollbackButton()">Rollback</button>
+        <button class="pill" id="cr" onclick="RollbackButton()">Rollback</button> -->
     </div>
 
-    <div class="something">
-        <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
+    <div class="pushCode">
+        <form action="/get_form_text" method="GET">
+            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <br><br>
+            <input class="pill" id="cr" type="submit" onclick="PushButton()" value="Push Code" />
+        </form>
+        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button class="pill" id="cr" onclick="SomethingButton()">Something</button>
+        <button class="pill" id="cr" onclick="PushButton()">Push Code</button> -->
     </div>
 
 </body>
