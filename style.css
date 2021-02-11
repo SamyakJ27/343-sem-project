@@ -52,3 +52,36 @@ h1,
 h4 {
     display: inline;
 }
+
+/* Navbar CSS */
+* {
+    padding: 0;
+    margin: 0;
+}
+
+nav {
+    background-color: transparent;
+    height: 40px;
+}
+
+nav ul {
+    margin: 0 auto;
+}
+
+nav ul li {
+    list-style-type: none;
+    width: 100px;
+    float: left;
+    text-align: center;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: purple;
+    line-height: 40px;
+    display: block;
+}
+
+nav ul li a:hover {
+    background-color: aqua;
+}
