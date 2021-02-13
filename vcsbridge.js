@@ -4,7 +4,7 @@
  * @brief vcsbridge.js permits form data submitted from vcswebsite.html to
  *        be redirected to a special webpage listing out the appropriate data.
  */
-
+const fs = require('fs');
 var express = require('express');
 var app = express();
     app.use( express.static( './' ));
@@ -16,6 +16,7 @@ var app = express();
             var formText = req.query.my_input_box_text;
             console.log('Form text received: ' + formText);
             res.send('Text Input: ' + formText);
+            fs.writeFileSync(__dirname + '/repo.txt', formText, 'utf8');
         }
     );
     app.get(
