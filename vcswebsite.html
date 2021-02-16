@@ -30,7 +30,7 @@
         <ul>
             <!-- Need usable links, and webpage redirection -->
             <li><a href="#home">Home</a></li>
-            <li><a href="#files">Files</a></li>
+            <li><a href="files.html">Files</a></li>
             <li><a href="#history">History</a></li>
             <li><a href="#about">About</a></li>
         </ul>
@@ -46,7 +46,7 @@
     <!-- Button Activation -->
     <div class="createRepo">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repository" />
         </form>
@@ -57,7 +57,7 @@
 
     <div class="rollback">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="RollbackButton()" value="Rollback" />
         </form>
@@ -68,7 +68,7 @@
 
     <div class="pushCode">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" style="font-family: monospace;" cols="50" rows="1" name = "my_input_box_text" placeholder="input text here" required />
+            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="PushButton()" value="Push Code" />
         </form>
