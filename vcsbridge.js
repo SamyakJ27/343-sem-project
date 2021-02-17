@@ -13,10 +13,16 @@ var app = express();
         // req - request
         // res - result
         function(req, res) {
-            var formText = req.query.my_input_box_text;
-            console.log('Form text received: ' + formText);
-            res.send('Text Input: ' + formText);
-            fs.writeFileSync(__dirname + '/repo.txt', formText, 'utf8');
+            var fileName = req.query.repo_name;
+            var filePath = req.query.repo_path;
+            var fileText = req.query.repo_text;
+            console.log('Repo Name recieved: ' + fileName);
+            console.log('File Path recieved: ' + filePath);
+            console.log('Repo text given: ' + fileText)
+            res.send('You can find ' + fileName + ' repo at ' + filePath + '.txt');
+            // ! for filename switch slashes to '/' not '\'
+            // * filepath example: C:\Users\rifat\projects
+            fs.writeFileSync(filePath + '/' + fileName + '.txt', fileText, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
         }
     );
     app.get(
