@@ -46,7 +46,15 @@
     <!-- Button Activation -->
     <div class="createRepo">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
+            <label for="name">Name of Repo
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="repo_name" placeholder="Input repo name here" required /></label>
+            <label for="path">Paste Path Directory
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="repo_path" placeholder="Input file path here" required /></label>
+            <label for="contents">Contents of Repo
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="repo_text" placeholder="Input text for repository" required /></label>
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repository" />
         </form>
@@ -57,7 +65,8 @@
 
     <div class="rollback">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
+            <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1"
+                name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="RollbackButton()" value="Rollback" />
         </form>
@@ -68,7 +77,8 @@
 
     <div class="pushCode">
         <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name = "my_input_box_text" placeholder="Input text here" required />
+            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" onclick="PushButton()" value="Push Code" />
         </form>
