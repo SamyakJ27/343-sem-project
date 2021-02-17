@@ -1,5 +1,5 @@
 /**
- * @author James Austin Jr.
+ * @author James Austin Jr., Rifat Hasan
  * @date 2021/02/07
  * @brief vcsbridge.js permits form data submitted from vcswebsite.html to
  *        be redirected to a special webpage listing out the appropriate data.
