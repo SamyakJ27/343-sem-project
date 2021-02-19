@@ -1,10 +1,13 @@
 /**
- * @author James Austin Jr., Rifat Hasan
+ * @author James Austin Jr., Rifat Hasan, Rishika Baranwal, Samyak Jain
+ * @email james.austin@student.csulb.edu, rifat.hasan@student.csulb.edu, rishika.baranwal@student.csulb.edu, samyak.jain@student.csulb.edu
  * @date 2021/02/07
  * @brief vcsbridge.js permits form data submitted from vcswebsite.html to
  *        be redirected to a special webpage listing out the appropriate data.
  */
-const fs = require('fs');
+
+var fse = require('fs-extra');
+var fs = require('fs');
 var express = require('express');
 var app = express();
     app.use( express.static( './' ));
@@ -20,9 +23,10 @@ var app = express();
             console.log('Source Path recieved: ' + sourcePath);
             console.log('Target Path received: ' + targetPath)
             res.send('You can find ' + fileName + ' repo at ' + sourcePath + '.txt');
+            fse.copy(sourcePath, targetPath, () => {console.log("\nFile successfully stored!\n")});
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
-            fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
+            //fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
         }
     );
     app.get(
