@@ -52,6 +52,7 @@ var app = express();
             console.log("vcsbridge.js listening on port 3000!");
         }
     );
+    /*
     app.getPath( //comeback to this 
         '/',
         function(file) {
@@ -63,6 +64,7 @@ var app = express();
             return str;
         } 
     );
+    */
 
 /**
  * Artifact ID Generator
@@ -81,17 +83,31 @@ var app = express();
     var hexTotal = 0;
     var hashOffset = 4;
     var r = 0;
-    var contents = ''; // const?
+    //var contents = ''; // const?
     var A = hexConvert(rootName);
 
-    var filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
+    //const filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
+    const filenames = fs.readdirSync(rootName, function(err, list) {
+        list = list.filter(item => !(/(^|/).[^/.]/g).test(item));
+      
+        // Your code
+      });
+    
     // hash function
-    filesnames.array.forEach((file) => {
+    filenames.forEach((file) => {
         // var iter = 0
         // reads the contents of the file
-        contents = fs.readFileSync(file, 'utf8'); // utf8 = buffer for english
+        
+        fs.readFile(file, 'utf8', function(err, data){
+            //if (err) throw err;
+            //var contents = data;
+            console.log(file);
+            console.log(data);
+
+          }); // utf8 = buffer for english
+        /*
         // while(!contents.eof()) { // needs to turn to false
-        for (let iter = 0; i < contents.length; ++i) {
+        for (let iter = 0; iter < contents.length; ++iter) {
             r = iter % hashOffset;
             // r = ++iter % hashOffset;
             if (r == 0) {
@@ -110,6 +126,7 @@ var app = express();
         var B = fs.statSync(file).size.toString(16); // is size the same as file length?
         var C = hexTotal.toString(16);
         fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E);
+        */
     });
 
     // while (!fileData) { // idk how to check for EOF
