@@ -9,20 +9,20 @@ var express = require('express');
 var app = express();
     app.use( express.static( './' ));
     app.get(
-        '/get_form_text',
+        '/get_repo_form',
         // req - request
         // res - result
         function(req, res) {
             var fileName = req.query.repo_name;
-            var filePath = req.query.repo_path;
-            var fileText = req.query.repo_text;
+            var sourcePath = req.query.source_path;
+            var targetPath = req.query.target_path;
             console.log('Repo Name recieved: ' + fileName);
-            console.log('File Path recieved: ' + filePath);
-            console.log('Repo text given: ' + fileText)
-            res.send('You can find ' + fileName + ' repo at ' + filePath + '.txt');
+            console.log('Source Path recieved: ' + sourcePath);
+            console.log('Target Path received: ' + targetPath)
+            res.send('You can find ' + fileName + ' repo at ' + sourcePath + '.txt');
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
-            fs.writeFileSync(filePath + '/' + fileName + '.txt', fileText, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
+            fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
         }
     );
     app.get(
@@ -45,7 +45,8 @@ var app = express();
  * Artifact ID Generator
  * Generates a filename according to file data passed in through form
  */
-function artID() {
+/*
+ function artID() {
     var rootName = __dirname; // A - root name // fs.dir.path? // need to change path name to respective file
     var fileData = fs.readFileSync(rootName + '/repo.txt', 'utf8'); // repo.txt needs to change
     var fileLength = fileData.length();
@@ -86,3 +87,4 @@ function artID() {
 
     console.log('' + A + '/' + B + '/' + C + '/' + D + '.' + E);
 }
+*/
