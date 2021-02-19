@@ -24,6 +24,8 @@ var app = express();
             console.log('Target Path received: ' + targetPath)
             res.send('You can find ' + fileName + ' repo at ' + sourcePath + '.txt');
             fse.copy(sourcePath, targetPath, () => {console.log("\nFile successfully stored!\n")});
+
+            artID(targetPath);
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
             //fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
@@ -49,34 +51,54 @@ var app = express();
  * Artifact ID Generator
  * Generates a filename according to file data passed in through form
  */
-/*
- function artID() {
-    var rootName = __dirname; // A - root name // fs.dir.path? // need to change path name to respective file
-    var fileData = fs.readFileSync(rootName + '/repo.txt', 'utf8'); // repo.txt needs to change
-    var fileLength = fileData.length();
+ function artID(rootName) {
+    // var rootName = __dirname; // A - root name // fs.dir.path? // need to change path name to respective file
+    // var fileData = fs.readFileSync(rootName + '/repo.txt', 'utf8'); // repo.txt needs to change
+    // var fileLength = fileData.length();
 
     // needs to be changed to respective file
-    var D = 'repo';
-    var E = 'txt';
+    // var D = 'repo';
+    // var E = 'txt';
 
     var iter = 0;
     var hexTotal = 0;
     var iterTracker = 4;
     var r = 0;
-    while (!fileData) { // idk how to check for EOF
-        // iter++;
-        r = ++iter % iterTracker;
-        if (r == 0) {
-            hexTotal += fileData.charAt(iter) * 3;
+    var A = hexConvert(rootName);
+
+    let filenames = fs.readdir(rootName);
+    filesnames.array.forEach((file) => {
+        while(filenames.length()) { // needs to turn to false
+            r = ++iter % iterTracker;
+            if (r == 0) {
+                hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+            }
+            else if (r == 1 || r == 3) {
+                hexTotal += file.charAt(iter) * 7;
+            }
+            else if (r == 2) {
+                hexTotal += file.charAt(iter) * 11;
+            }
         }
-        else if (r == 1 || r == 3) {
-            hexTotal += fileData.charAt(iter) * 7;
-        }
-        else if (r == 2) {
-            hexTotal += fileData.charAt(iter) * 11;
-        }
-    }
-    var C = hexTotal.toString(16); // C - hex output, needs to be truncated for overflow
+        var B = hexConvert(file.length()); // probably not a function
+        var C = hexTotal.toString(16);
+        fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E)
+    });
+
+    // while (!fileData) { // idk how to check for EOF
+    //     // iter++;
+    //     r = ++iter % iterTracker;
+    //     if (r == 0) {
+    //         hexTotal += fileData.charAt(iter) * 3;
+    //     }
+    //     else if (r == 1 || r == 3) {
+    //         hexTotal += fileData.charAt(iter) * 7;
+    //     }
+    //     else if (r == 2) {
+    //         hexTotal += fileData.charAt(iter) * 11;
+    //     }
+    // }
+    // var C = hexTotal.toString(16); // C - hex output, needs to be truncated for overflow
 
     function hexConvert (text) {
         var hex = '';
@@ -86,9 +108,8 @@ var app = express();
         return hex;
     }
 
-    var A = hexConvert(rootName); // A - hex output
-    var B = hexConvert(fileLength); // B - hex output
+    // var A = hexConvert(rootName); // A - hex output
+    // var B = hexConvert(fileLength); // B - hex output
 
-    console.log('' + A + '/' + B + '/' + C + '/' + D + '.' + E);
+    // console.log('' + A + '/' + B + '/' + C + '/' + D + '.' + E);
 }
-*/
