@@ -52,6 +52,17 @@ var app = express();
             console.log("vcsbridge.js listening on port 3000!");
         }
     );
+    app.getPath( //comeback to this 
+        '/',
+        function(file) {
+            var element = file.split("/");
+            var str = "";
+            for(var i = 0; i < element.length-1; i++){
+                str += element[i] + "/";
+            }
+            return str;
+        } 
+    );
 
 /**
  * Artifact ID Generator
