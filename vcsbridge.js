@@ -23,9 +23,15 @@ var app = express();
             console.log('Source Path recieved: ' + sourcePath);
             console.log('Target Path received: ' + targetPath)
             res.send('You can find ' + fileName + ' repo at ' + sourcePath + '.txt');
-            fse.copy(sourcePath, targetPath, () => {console.log("\nFile successfully stored!\n")});
+            fse.copy(sourcePath, targetPath,
+                () => {
+                    console.log("\nFile successfully stored!\n");
+                    artID(targetPath); // executes after copy is complete
+                }
+            );
 
-            artID(targetPath);
+            // artID(targetPath);
+
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
             //fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
@@ -60,34 +66,44 @@ var app = express();
     // var D = 'repo';
     // var E = 'txt';
 
-    var iter = 0;
+    // var iter = 0;
     var hexTotal = 0;
-    var iterTracker = 4;
+    var hashOffset = 4;
     var r = 0;
+    var contents = ''; // const?
     var A = hexConvert(rootName);
 
-    let filenames = fs.readdir(rootName);
+    var filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
+    // hash function
     filesnames.array.forEach((file) => {
-        while(filenames.length()) { // needs to turn to false
-            r = ++iter % iterTracker;
+        // var iter = 0
+        // reads the contents of the file
+        contents = fs.readFileSync(file, 'utf8'); // utf8 = buffer for english
+        // while(!contents.eof()) { // needs to turn to false
+        for (let iter = 0; i < contents.length; ++i) {
+            r = iter % hashOffset;
+            // r = ++iter % hashOffset;
             if (r == 0) {
-                hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+                // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+                hexTotal += contents.substr(iter, 1) * 3;
             }
             else if (r == 1 || r == 3) {
-                hexTotal += file.charAt(iter) * 7;
+                // hexTotal += file.charAt(iter) * 7;
+                hexTotal += contents.substr(iter, 1) * 7;
             }
             else if (r == 2) {
-                hexTotal += file.charAt(iter) * 11;
+                // hexTotal += file.charAt(iter) * 11;
+                hexTotal += contents.substr(iter, 1) * 11;
             }
         }
-        var B = hexConvert(file.length()); // probably not a function
+        var B = fs.statSync(file).size.toString(16); // is size the same as file length?
         var C = hexTotal.toString(16);
-        fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E)
+        fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E);
     });
 
     // while (!fileData) { // idk how to check for EOF
     //     // iter++;
-    //     r = ++iter % iterTracker;
+    //     r = ++iter % hashOffset;
     //     if (r == 0) {
     //         hexTotal += fileData.charAt(iter) * 3;
     //     }
