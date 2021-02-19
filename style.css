@@ -15,6 +15,10 @@ body {
     text-align: center;
 }
 
+label {
+    text-align: left;
+}
+
 #repo {
     padding-left: 1px;
     padding-right: 1px;
@@ -38,7 +42,7 @@ body {
 
 .title {
     text-align: center;
-    font-size: 4rem;
+    font-size: 3rem;
     text-shadow: 0 0 10px rgb(193, 154, 120);
     padding-bottom: 10px;
 

@@ -55,16 +55,15 @@
     <!-- Button Activation -->
     <div class="createRepo">
         <form action="/get_repo_form" method="GET">
-            <label for="name">Name of Repo
+            <label for="name"><br>Name of Repo:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="repo_name" placeholder="Input repo name here" required /></label>
-            <label for="path">Source Path Directory
+                    name="repo_name" placeholder="Input repo name here" required /><br></label>
+            <label for="path"><br>Source Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="source_path" placeholder="Input source path here" required /></label>
-            <label for="path">Target Path Directory
+                    name="source_path" placeholder="Input source path here" required /><br></label>
+            <label for="path"><br>Target Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="target_path" placeholder="Input target path here" required /></label>
-            <br><br>
+                    name="target_path" placeholder="Input target path here" required /><br></label><br>
             <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repository" />
         </form>
         <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
