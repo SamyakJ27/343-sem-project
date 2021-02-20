@@ -87,24 +87,23 @@ var app = express();
     var A = hexConvert(rootName);
 
     //const filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
-    const filenames = fs.readdirSync(rootName, function(err, list) {
-        list = list.filter(item => !(/(^|/).[^/.]/g).test(item));
-      
-        // Your code
-      });
+    const filenames = fs.readdirSync(rootName, (err, list) => {
+        if(err) throw err;
+        list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item)); // i have no idea wtf is going on with this regex
+    });
     
     // hash function
     filenames.forEach((file) => {
         // var iter = 0
         // reads the contents of the file
         
-        fs.readFile(file, 'utf8', function(err, data){
+        fs.readFile(file, function(err, data) {
             //if (err) throw err;
             //var contents = data;
             console.log(file);
             console.log(data);
 
-          }); // utf8 = buffer for english
+        }); // utf8 = buffer for english
         /*
         // while(!contents.eof()) { // needs to turn to false
         for (let iter = 0; iter < contents.length; ++iter) {
