@@ -16,25 +16,35 @@ var app = express();
         // req - request
         // res - result
         function(req, res) {
-            var fileName = req.query.repo_name;
+            var repoName = req.query.repo_name;
             var sourcePath = req.query.source_path;
-            var targetPath = req.query.target_path;
-            console.log('Repo Name recieved: ' + fileName);
+            var targetPath = req.query.target_path + '/' + repoName;
+            console.log('Repo Name recieved: ' + repoName);
             console.log('Source Path recieved: ' + sourcePath);
             console.log('Target Path received: ' + targetPath)
-            res.send('You can find ' + fileName + ' repo at ' + sourcePath + '.txt');
+
+            // Error Handling for existing directories
+            // if (!fs.existsSync(targetPath + '/' + repoName)) {
+            //     fs.mkdirSync(targetPath + '/' + repoName);
+            //     targetPath = targetPath + '/' + repoName;
+            // }
             fse.copy(sourcePath, targetPath,
                 () => {
-                    console.log("\nFile successfully stored!\n");
-                    artID(targetPath); // executes after copy is complete
-                }
-            );
+                        console.log("\nFile successfully stored!\n");
+                        artID(targetPath); // executes after copy is complete
+                    }
+                );
+
+            res.send('You can find ' + repoName + ' repo at ' + targetPath);
+
+
+            
 
             // artID(targetPath);
 
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
-            //fs.writeFileSync(sourcePath + '/' + fileName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
+            //fs.writeFileSync(sourcePath + '/' + repoName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
         }
     );
     app.get(
@@ -87,9 +97,14 @@ var app = express();
     var A = hexConvert(rootName);
 
     //const filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
+    // read files in the directory
+    // rootName = targetPath
+    // filenames = array of (strings) file names in that directory
     const filenames = fs.readdirSync(rootName, (err, list) => {
         if(err) throw err;
+        // regex, limit what is going in, hidden files should be ignored
         list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item)); // i have no idea wtf is going on with this regex
+        // need to ignore .DS_store
     });
     
     // hash function
@@ -97,11 +112,14 @@ var app = express();
         // var iter = 0
         // reads the contents of the file
         
+        // read the contents of file passed
         fs.readFile(file, function(err, data) {
-            //if (err) throw err;
-            //var contents = data;
-            console.log(file);
-            console.log(data);
+            // if (err) throw err; // throws when file in undefined
+            // var contents = data;
+            console.log(file); // .DS_store is included for some reason
+            console.log(data); // either outputs nonsense or undefined
+
+            // SEARCH: file outputs undefined when it is read even though there's in it node js
 
         }); // utf8 = buffer for english
         /*
