@@ -10,19 +10,25 @@ var fse = require('fs-extra');
 var fs = require('fs');
 var express = require('express');
 var app = express();
+const path = require('path');
     app.use( express.static( './' ));
     app.get(
         '/get_repo_form',
+
+        
         // req - request
         // res - result
         function(req, res) {
-            var repoName = req.query.repo_name;
-            var sourcePath = req.query.source_path;
-            var targetPath = req.query.target_path + '/' + repoName;
+            var repoName = req.query.repo_name;                         // ! something
+            var sourcePath = req.query.source_path;                     // ! C:/Users/rifat/Desktop/source
+            var targetPath = req.query.target_path + '/' + repoName;    // ! C:/Users/rifat/Desktop/CSULB-2021-Spring/target
+            var flatfile = path.basename(targetPath);                   // ? something bc we add folder called 'something' to the end
+            
             console.log('Repo Name recieved: ' + repoName);
             console.log('Source Path recieved: ' + sourcePath);
-            console.log('Target Path received: ' + targetPath)
-
+            console.log('Target Path received: ' + targetPath);
+            console.log('Base Name: ' + flatfile);
+            //flatRecursion();
             // Error Handling for existing directories
             // if (!fs.existsSync(targetPath + '/' + repoName)) {
             //     fs.mkdirSync(targetPath + '/' + repoName);
@@ -31,22 +37,33 @@ var app = express();
             fse.copy(sourcePath, targetPath,
                 () => {
                         console.log("\nFile successfully stored!\n");
-                        artID(targetPath); // executes after copy is complete
+                        //artID(targetPath); // executes after copy is complete
                     }
                 );
-
+            
             res.send('You can find ' + repoName + ' repo at ' + targetPath);
 
-
-            
-
             // artID(targetPath);
-
             // ! for filename switch slashes to '/' not '\'
             // * filepath example: C:\Users\rifat\projects
             //fs.writeFileSync(sourcePath + '/' + repoName + '.txt', targetPath, 'utf8'); //concatenates filepath given and repo name to create text file in user's desired location
         }
     );
+    /* 
+    function flatRecursion(targetPath) {
+        var flatfile = path.basename(targetPath);
+        console.log("\nCurrent filenames: ");
+        fs.readdirSync(flatfile).forEach(file => {
+            console.log(file);
+        });
+    } */
+
+    /* function getCurrentFilenames() { 
+        console.log("\nCurrent filenames:"); 
+        fs.readdirSync(__dirname).forEach(file => { 
+          console.log(file); 
+        }); 
+      }  */
     app.get(
         '/',
         function(req, res) {
