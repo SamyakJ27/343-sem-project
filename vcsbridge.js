@@ -44,6 +44,7 @@ app.get(
                 console.log("\nFile successfully stored!\n");
                 console.log("Running Art...");
 
+                flatRecursion(targetPath);
                 console.log("\nCurrent filenames: ");
                 fs.readdirSync(targetPath).forEach(file => {
                     console.log(file);
@@ -72,17 +73,22 @@ function flatRecursion(targetPath) {
 } */
 
 function flatRecursion(targetPath) {
-    var flatfile = path.basename(targetPath);
+    var flatfile = path.basename(targetPath); // c: user/desktop
     console.log("\nCurrent filenames: ");
-    fs.readdirSync(flatfile).forEach(file => {
+    fs.readdirSync(flatfile).forEach(file => { // c: user/desktop/test
         console.log(file);
-        if(fs.lstatSync(file).isDirectory())
-            return flatRecursion(file);
-        else if(!fs.existsSync(file)) {
-            return;
+        if(fs.lstatSync(file).isDirectory()) {
+            fs.move(flatfile + '/' + file, targetPath, console.error);
+            return flatRecursion(flatfile + '/' + file);
         }
+            // return flatRecursion(file);
+        // else if(!fs.existsSync(file)) {
+        //     return;
+        // }
         else {
-            fse.move(targetPath + 'NEXT DIR', targetPath, console.error);
+            // fse.move(targetPath + 'NEXT DIR', targetPath, console.error);
+            // fs.move(flatfile + '/' + file, targetPath, console.error);
+            return ;
         }
 
         /* ERROR HANDLING:
