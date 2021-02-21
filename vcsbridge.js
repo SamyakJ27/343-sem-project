@@ -9,6 +9,10 @@
 var fse = require('fs-extra');
 var fs = require('fs');
 var express = require('express');
+
+// only need if hidden files become a problem
+// const fs = require('fs').promises;
+
 var app = express();
 const path = require('path');
 app.use(express.static('./'));
@@ -28,7 +32,8 @@ app.get(
         console.log('Source Path recieved: ' + sourcePath);
         console.log('Target Path received: ' + targetPath);
         console.log('Base Name: ' + flatfile);
-        //flatRecursion();
+        // flatRecursion(targetPath);
+
         // Error Handling for existing directories
         // if (!fs.existsSync(targetPath + '/' + repoName)) {
         //     fs.mkdirSync(targetPath + '/' + repoName);
@@ -37,7 +42,15 @@ app.get(
         fse.copy(sourcePath, targetPath,
             () => {
                 console.log("\nFile successfully stored!\n");
-                //artID(targetPath); // executes after copy is complete
+                console.log("Running Art...");
+
+                console.log("\nCurrent filenames: ");
+                fs.readdirSync(targetPath).forEach(file => {
+                    console.log(file);
+                });
+
+                artID(targetPath); // executes after copy is complete
+                console.log("Running Art...");
             }
         );
 
@@ -57,6 +70,35 @@ function flatRecursion(targetPath) {
         console.log(file);
     });
 } */
+
+function flatRecursion(targetPath) {
+    var flatfile = path.basename(targetPath);
+    console.log("\nCurrent filenames: ");
+    fs.readdirSync(flatfile).forEach(file => {
+        console.log(file);
+        if(fs.lstatSync(file).isDirectory())
+            return flatRecursion(file);
+        else if(!fs.existsSync(file)) {
+            return;
+        }
+        else {
+            fse.move(targetPath + 'NEXT DIR', targetPath, console.error);
+        }
+
+        /* ERROR HANDLING:
+        try{
+            fs.lstatSync("/some/path").isDirectory()
+        }catch(e){
+            // Handle error
+            if(e.code == 'ENOENT'){
+                //no such file or directory
+                //do something
+            }else {
+                //do something else
+            }
+        }*/
+    });
+}
 
 /* function getCurrentFilenames() { 
     console.log("\nCurrent filenames:"); 
@@ -116,13 +158,32 @@ function artID(rootName) {
     // read files in the directory
     // rootName = targetPath
     // filenames = array of (strings) file names in that directory
-    const filenames = fs.readdirSync(rootName, (err, list) => {
-        if (err) throw err;
-        // regex, limit what is going in, hidden files should be ignored
-        list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item)); // i have no idea wtf is going on with this regex
-        // need to ignore .DS_store
-    });
 
+    // debug
+    // console.log("Running Filenames...");
+    // const filenames = fs.readdirSync(rootName, (err, list) => {
+    //     if (err) throw err;
+    //     // regex, limit what is going in, hidden files should be ignored
+    //     console.log("Running In Filenames...");
+    //     for(let i = 0; i < list.length(); ++i) {
+    //         if(list[i].charAt(0) == '.')
+    //             console.log(list[i]);
+    //     }
+    //     // list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item)); // i have no idea wtf is going on with this regex
+    //     // console.log(list);
+    //     // need to ignore .DS_store
+    // });
+
+    // removes dot files from list
+    const filenames = fs.readdirSync(rootName);
+    for(let i = 0; i < filenames.length; ++i) {
+        if(filenames[i].charAt(0) == '.') {
+            console.log(filenames[i]);
+            filenames.splice(i, 1);
+        }
+    }
+    // debug
+    // console.log("Running After Filenames...", filenames);
 
     //Samyak addition - experimentation 
     // fs.readdir(rootName, function(err, files) {
@@ -138,11 +199,15 @@ function artID(rootName) {
     // });
 
     // hash function
-    filenames.forEach((file) => {
+    filenames.forEach(file => {
         // var iter = 0
         // reads the contents of the file
 
         // read the contents of file passed
+        fs.readFileSync(file, 'utf8');
+        console.log(file);
+        console.log(data); 
+        /*
         fs.readFile(file, function(err, data) {
             // if (err) throw err; // throws when file in undefined
             // var contents = data;
@@ -151,7 +216,8 @@ function artID(rootName) {
 
             // SEARCH: file outputs undefined when it is read even though there's in it node js
 
-        }); // utf8 = buffer for english
+        }); // utf8 = buffer for english 
+        */
         /*
         // while(!contents.eof()) { // needs to turn to false
         for (let iter = 0; iter < contents.length; ++iter) {
