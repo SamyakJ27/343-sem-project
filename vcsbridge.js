@@ -42,16 +42,50 @@ app.get(
         fse.copy(sourcePath, targetPath,
             () => {
                 console.log("\nFile successfully stored!\n");
-                console.log("Running Art...");
+                // console.log("Running Art...");
 
-                flatRecursion(targetPath);
-                console.log("\nCurrent filenames: ");
-                fs.readdirSync(targetPath).forEach(file => {
-                    console.log(file);
-                });
+                fs.readdir(targetPath, (err, files) => {});
+                //     if(err) console.log(err);
+                //     files.forEach(file => {
+                //         // if(file is in directory then move on)
+                //         if(file.charAt(0) == '.')
+                //             fs.unlinkSync(path.join(targetPath, file));
+                //         else if(fs.lstatSync(path.join(targetPath, file)).isFile())
+                //             console.log("File - ", file);
+                //         else if(fs.lstatSync(path.join(targetPath, file)).isDirectory()) {
+                //             console.log("Directory - ", file);
+                //             flattenFiles(targetPath, path.join(targetPath, file)); // may need to pass in lstatSync
+                //         }
+                //     });
+                // });
 
-                artID(targetPath); // executes after copy is complete
-                console.log("Running Art...");
+                const removeDir = function (targetPath) {
+                    if(fs.existsSync(targetPath)) {
+                        const files = fs.readdirSync(targetPath);
+
+                        if(files.length > 0) {
+                            files.forEach(filename => {
+                                if(fs.statSync(path.join(targetPath, filename)).isDirectory()) {
+                                    removeDir(path.join(targetPath, filename));
+                                }
+                                else {
+                                    fs.unlinkSync(path.join(targetPath, filename));
+                                }
+                            });
+                        }
+                        else { console.log("No Files"); }
+                    }
+                    else { console.log("No Directory"); }
+                };
+
+                // flatRecursion(targetPath);
+                // console.log("\nCurrent filenames: ");
+                // fs.readdirSync(targetPath).forEach(file => {
+                //     console.log(file);
+                // });
+
+                // artID(targetPath); // executes after copy is complete
+                // console.log("Running Art...");
             }
         );
 
@@ -72,24 +106,61 @@ function flatRecursion(targetPath) {
     });
 } */
 
+// function flattenFiles(targetPath, tempDir) {
+//     fs.readdir(tempDir, (err, files) => {
+//         if(err) console.log(err);
+//         files.forEach(file => {
+//             if(file.charAt(0) == '.')
+//                 fs.unlinkSync(path.join(tempDir, file));
+//             else if(fs.lstatSync(path.join(tempDir, file)).isFile()) {
+//                 console.log("File - ", file);
+//                 fse.move(path.join(tempDir, temp), targetPath);
+//                 fse.rename(path.join(tempDir, file), targetPath + '/dummy', (err) => {
+//                     if(err) console.log(err);
+//                     else console.log(file);
+//                 });
+//             }
+//             else if(fs.lstatSync(path.join(tempDir, file)).isDirectory())
+//                 // console.log("Directory - ", file);
+//                 flattenFiles(targetPath, file); 
+//         });
+//         // console.log("Unlink end");
+//         // fs.unlinkSync(tempDir);
+//     });
+// }
+
 function flatRecursion(targetPath) {
-    var flatfile = path.basename(targetPath); // c: user/desktop
-    console.log("\nCurrent filenames: ");
-    fs.readdirSync(flatfile).forEach(file => { // c: user/desktop/test
-        console.log(file);
-        if(fs.lstatSync(file).isDirectory()) {
-            fs.move(flatfile + '/' + file, targetPath, console.error);
-            return flatRecursion(flatfile + '/' + file);
-        }
-            // return flatRecursion(file);
-        // else if(!fs.existsSync(file)) {
-        //     return;
-        // }
-        else {
-            // fse.move(targetPath + 'NEXT DIR', targetPath, console.error);
-            // fs.move(flatfile + '/' + file, targetPath, console.error);
-            return ;
-        }
+
+    console.log(targetPath);
+    fs.readdir(targetPath, (err, files) => {
+        if(err) { console.log(err); }
+        let dir = false;
+        files.forEach(file => {
+            let file_stat = fs.lstatSync(path.join(targetPath, file));
+            if(file_stat.isFile()) {
+                dir = false;
+            }
+            // else if()
+        });
+    });
+
+    // var flatfile = path.basename(targetPath); // c: user/desktop
+    // console.log("\nCurrent filenames: ");
+    // fs.readdirSync(flatfile).forEach(file => { // c: user/desktop/test
+    //     console.log(file);
+    //     if(fs.lstatSync(file).isDirectory()) {
+    //         fs.move(flatfile + '/' + file, targetPath, console.error);
+    //         return flatRecursion(flatfile + '/' + file);
+    //     }
+    //         // return flatRecursion(file);
+    //     // else if(!fs.existsSync(file)) {
+    //     //     return;
+    //     // }
+    //     else {
+    //         // fse.move(targetPath + 'NEXT DIR', targetPath, console.error);
+    //         // fs.move(flatfile + '/' + file, targetPath, console.error);
+    //         return ;
+    //     }
 
         /* ERROR HANDLING:
         try{
@@ -103,7 +174,7 @@ function flatRecursion(targetPath) {
                 //do something else
             }
         }*/
-    });
+    // });
 }
 
 /* function getCurrentFilenames() { 
@@ -184,7 +255,7 @@ function artID(rootName) {
     const filenames = fs.readdirSync(rootName);
     for(let i = 0; i < filenames.length; ++i) {
         if(filenames[i].charAt(0) == '.') {
-            console.log(filenames[i]);
+            console.log("Removing - " + filenames[i]);
             filenames.splice(i, 1);
         }
     }
@@ -210,9 +281,11 @@ function artID(rootName) {
         // reads the contents of the file
 
         // read the contents of file passed
-        fs.readFileSync(file, 'utf8');
-        console.log(file);
-        console.log(data); 
+        // if(!fs.lstatSync(path.join(filePath, file)).isDirectory()) {
+        //     const content = fs.readFileSync(path.join(filePath, file), 'utf8');
+        //     console.log(content);
+        // }
+        
         /*
         fs.readFile(file, function(err, data) {
             // if (err) throw err; // throws when file in undefined
