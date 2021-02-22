@@ -15,6 +15,7 @@ var express = require('express');
 
 var app = express();
 const path = require('path');
+const { connect } = require('http2');
 app.use(express.static('./'));
 app.get(
     '/get_repo_form',
@@ -44,7 +45,7 @@ app.get(
                 console.log("\nFile successfully stored!\n");
                 // console.log("Running Art...");
 
-                fs.readdir(targetPath, (err, files) => {});
+                // fs.readdir(targetPath, (err, files) => {});
                 //     if(err) console.log(err);
                 //     files.forEach(file => {
                 //         // if(file is in directory then move on)
@@ -59,24 +60,27 @@ app.get(
                 //     });
                 // });
 
-                const removeDir = function (targetPath) {
-                    if(fs.existsSync(targetPath)) {
-                        const files = fs.readdirSync(targetPath);
+                // let content = fs.readFileSync(path.join(targetPath, "test.txt"), 'utf8');
+                // console.log(content);
 
-                        if(files.length > 0) {
-                            files.forEach(filename => {
-                                if(fs.statSync(path.join(targetPath, filename)).isDirectory()) {
-                                    removeDir(path.join(targetPath, filename));
-                                }
-                                else {
-                                    fs.unlinkSync(path.join(targetPath, filename));
-                                }
-                            });
-                        }
-                        else { console.log("No Files"); }
-                    }
-                    else { console.log("No Directory"); }
-                };
+                // const removeDir = function (targetPath) {
+                //     if(fs.existsSync(targetPath)) {
+                //         const files = fs.readdirSync(targetPath);
+
+                //         if(files.length > 0) {
+                //             files.forEach(filename => {
+                //                 if(fs.statSync(path.join(targetPath, filename)).isDirectory()) {
+                //                     removeDir(path.join(targetPath, filename));
+                //                 }
+                //                 else {
+                //                     fs.unlinkSync(path.join(targetPath, filename));
+                //                 }
+                //             });
+                //         }
+                //         else { console.log("No Files"); }
+                //     }
+                //     else { console.log("No Directory"); }
+                // };
 
                 // flatRecursion(targetPath);
                 // console.log("\nCurrent filenames: ");
@@ -84,7 +88,7 @@ app.get(
                 //     console.log(file);
                 // });
 
-                // artID(targetPath); // executes after copy is complete
+                artID(targetPath); // executes after copy is complete
                 // console.log("Running Art...");
             }
         );
@@ -230,6 +234,10 @@ function artID(rootName) {
     var r = 0;
     //var contents = ''; // const?
     var A = hexConvert(rootName);
+    // console.log(rootName.toString().toString(16));
+    for(let i = 0; i < rootName.length; ++i) {
+        console.log(rootName.charCodeAt(i).toString(16));
+    }
 
     //const filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
     // read files in the directory
@@ -252,15 +260,97 @@ function artID(rootName) {
     // });
 
     // removes dot files from list
-    const filenames = fs.readdirSync(rootName);
-    for(let i = 0; i < filenames.length; ++i) {
-        if(filenames[i].charAt(0) == '.') {
-            console.log("Removing - " + filenames[i]);
-            filenames.splice(i, 1);
+    function fileList(rootName) {
+        let filenames = fs.readdirSync(rootName);
+        for(let i = 0; i < filenames.length; ++i) {
+            if(filenames[i].charAt(0) == '.') {
+                console.log("Removing - " + filenames[i]);
+                fs.unlinkSync(path.join(rootName, filenames[i]));
+                // console.log(fs.readFileSync(filenames[i], 'utf8'));
+                filenames.splice(i, 1);
+            }
         }
+        filenames.forEach(file => {
+            let filePath = path.join(rootName, file);
+            var content;
+            if(fse.lstatSync(filePath).isFile()) {
+                content = fs.readFileSync(filePath, 'utf8');
+                // console.log(19 == content.length);
+                for (let iter = 0; iter < content.length; ++iter) {
+                    // r = iter % hashOffset;
+                    r = ++iter % hashOffset;
+                    if (r == 0) {
+                        // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+                        // hexTotal += content.substr(iter, 1) * 3;
+                        hexTotal += content.charCodeAt(iter) * 3;
+                    }
+                    else if (r == 1 || r == 3) {
+                        // hexTotal += file.charAt(iter) * 7;
+                        // hexTotal += content.substr(iter, 1) * 7;
+                        hexTotal += content.charCodeAt(iter) * 7;
+                    }
+                    else if (r == 2) {
+                        // hexTotal += file.charAt(iter) * 11;
+                        // hexTotal += content.substr(iter, 1) * 11;
+                        hexTotal += content.charCodeAt(iter) * 11;
+                    }
+                }
+                var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
+                var C = hexTotal.toString(16);
+                console.log("Hex Total:", hexTotal, "C: ", C);
+                // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file + '.' + E);
+                // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file, (err) => { console.log(err); });
+                console.log('Art ID: A:' + A + '/B:' + B + '/C:' + C + '/F:' + file);
+            // }
+            }
+            else {
+                fileList(filePath);
+            }
+            // let iter = 0;
+            // console.log(content.length);
+            // while(content && content.length) { // needs to turn to false
+            // for (let iter = 0; iter < content.length; ++iter) {
+            //     // r = iter % hashOffset;
+            //     r = ++iter % hashOffset;
+            //     if (r == 0) {
+            //         // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+            //         hexTotal += content.substr(iter, 1) * 3;
+            //     }
+            //     else if (r == 1 || r == 3) {
+            //         // hexTotal += file.charAt(iter) * 7;
+            //         hexTotal += content.substr(iter, 1) * 7;
+            //     }
+            //     else if (r == 2) {
+            //         // hexTotal += file.charAt(iter) * 11;
+            //         hexTotal += content.substr(iter, 1) * 11;
+            //     }
+            // // }
+            // var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
+            // var C = hexTotal.toString(16);
+            // // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file + '.' + E);
+            // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file, (err) => { console.log(err); });
+            // }
+        });
     }
     // debug
     // console.log("Running After Filenames...", filenames);
+    // let content = fs.readFileSync(path.join(rootName, "test.txt"), 'utf8');
+    // console.log(content);
+
+    fileList(rootName);
+
+    // function contentRead(filenames) {
+    //     filenames.forEach(file => {
+    //         let filePath = path.join(rootName, file);
+    //         if(fse.lstatSync(filePath).isFile()) {
+    //             let content = fs.readFileSync(filePath, 'utf8');
+    //             console.log(content);
+    //         }
+    //         else {
+    //             contentRead(fileList(filePath));
+    //         }
+    //     });
+    // }
 
     //Samyak addition - experimentation 
     // fs.readdir(rootName, function(err, files) {
@@ -276,7 +366,7 @@ function artID(rootName) {
     // });
 
     // hash function
-    filenames.forEach(file => {
+    // filenames.forEach(file => {
         // var iter = 0
         // reads the contents of the file
 
@@ -297,29 +387,29 @@ function artID(rootName) {
 
         }); // utf8 = buffer for english 
         */
-        /*
+        
         // while(!contents.eof()) { // needs to turn to false
-        for (let iter = 0; iter < contents.length; ++iter) {
-            r = iter % hashOffset;
-            // r = ++iter % hashOffset;
-            if (r == 0) {
-                // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
-                hexTotal += contents.substr(iter, 1) * 3;
-            }
-            else if (r == 1 || r == 3) {
-                // hexTotal += file.charAt(iter) * 7;
-                hexTotal += contents.substr(iter, 1) * 7;
-            }
-            else if (r == 2) {
-                // hexTotal += file.charAt(iter) * 11;
-                hexTotal += contents.substr(iter, 1) * 11;
-            }
-        }
-        var B = fs.statSync(file).size.toString(16); // is size the same as file length?
-        var C = hexTotal.toString(16);
-        fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E);
-        */
-    });
+        // for (let iter = 0; iter < contents.length; ++iter) {
+        //     r = iter % hashOffset;
+        //     // r = ++iter % hashOffset;
+        //     if (r == 0) {
+        //         // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
+        //         hexTotal += contents.substr(iter, 1) * 3;
+        //     }
+        //     else if (r == 1 || r == 3) {
+        //         // hexTotal += file.charAt(iter) * 7;
+        //         hexTotal += contents.substr(iter, 1) * 7;
+        //     }
+        //     else if (r == 2) {
+        //         // hexTotal += file.charAt(iter) * 11;
+        //         hexTotal += contents.substr(iter, 1) * 11;
+        //     }
+        // }
+        // var B = fs.statSync(file).size.toString(16); // is size the same as file length?
+        // var C = hexTotal.toString(16);
+        // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E);
+        
+    // });
 
     // while (!fileData) { // idk how to check for EOF
     //     // iter++;
@@ -341,6 +431,7 @@ function artID(rootName) {
         for (var i = 0; i < text.length; ++i) {
             hex += text.charAt(i).toString(16);
         }
+        console.log('Hex', hex);
         return hex;
     }
 
