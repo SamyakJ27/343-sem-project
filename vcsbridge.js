@@ -220,49 +220,22 @@ app.getPath( //comeback to this
  * Generates a filename according to file data passed in through form
  */
 function artID(rootName) {
-    // var rootName = __dirname; // A - root name // fs.dir.path? // need to change path name to respective file
-    // var fileData = fs.readFileSync(rootName + '/repo.txt', 'utf8'); // repo.txt needs to change
-    // var fileLength = fileData.length();
 
-    // needs to be changed to respective file
-    // var D = 'repo';
-    // var E = 'txt';
-
-    // var iter = 0;
-    var hexTotal = 0;
     var hashOffset = 4;
-    var r = 0;
-    //var contents = ''; // const?
-    var A = hexConvert(rootName);
+    var r = 0; // remainder
+    var base = rootName;
     // console.log(rootName.toString().toString(16));
-    for(let i = 0; i < rootName.length; ++i) {
-        console.log(rootName.charCodeAt(i).toString(16));
-    }
-
-    //const filenames = fs.readdirSync(rootName); // ERROR: no such file/directory found
-    // read files in the directory
-    // rootName = targetPath
-    // filenames = array of (strings) file names in that directory
 
     // debug
-    // console.log("Running Filenames...");
-    // const filenames = fs.readdirSync(rootName, (err, list) => {
-    //     if (err) throw err;
-    //     // regex, limit what is going in, hidden files should be ignored
-    //     console.log("Running In Filenames...");
-    //     for(let i = 0; i < list.length(); ++i) {
-    //         if(list[i].charAt(0) == '.')
-    //             console.log(list[i]);
-    //     }
-    //     // list = list.filter(item => !(/(^|\/)\.[^\/\.]/g).test(item)); // i have no idea wtf is going on with this regex
-    //     // console.log(list);
-    //     // need to ignore .DS_store
-    // });
+    // for(let i = 0; i < rootName.length; ++i) {
+    //     // console.log(rootName.charCodeAt(i).toString(16));
+    //     console.log(rootName.charCodeAt(i).toString(16));
+    // }
 
-    // removes dot files from list
     function fileList(rootName) {
         let filenames = fs.readdirSync(rootName);
         for(let i = 0; i < filenames.length; ++i) {
+            // removes dot files from list
             if(filenames[i].charAt(0) == '.') {
                 console.log("Removing - " + filenames[i]);
                 fs.unlinkSync(path.join(rootName, filenames[i]));
@@ -271,14 +244,16 @@ function artID(rootName) {
             }
         }
         filenames.forEach(file => {
-            let filePath = path.join(rootName, file);
-            var content;
+            let filePath = path.join(rootName, file); // change rootName to base
+            var content; // contents inside the file
             if(fse.lstatSync(filePath).isFile()) {
                 content = fs.readFileSync(filePath, 'utf8');
                 // console.log(19 == content.length);
+                var hexTotal = 0;
+                console.log("FilePath:", filePath);
                 for (let iter = 0; iter < content.length; ++iter) {
                     // r = iter % hashOffset;
-                    r = ++iter % hashOffset;
+                    r = iter % hashOffset;
                     if (r == 0) {
                         // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
                         // hexTotal += content.substr(iter, 1) * 3;
@@ -295,41 +270,30 @@ function artID(rootName) {
                         hexTotal += content.charCodeAt(iter) * 11;
                     }
                 }
+                var pathHex = 0;
+                // does not calculate/truncate for relative path
+                // filePath is not the relative source project tree path
+                for(let f = 0; f < filePath.length; ++f) {
+                    pathHex += filePath.charCodeAt(f);
+                }
+                var A = pathHex.toString(16); 
+                A = A.substr(A.length - 2, A.length); 
                 var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
+                while(B.length < 4)
+                    B = '0' + B;
                 var C = hexTotal.toString(16);
+                while(C.length < 4)
+                    C = '0' + C;
                 console.log("Hex Total:", hexTotal, "C: ", C);
                 // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file + '.' + E);
-                // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file, (err) => { console.log(err); });
-                console.log('Art ID: A:' + A + '/B:' + B + '/C:' + C + '/F:' + file);
+                fs.rename(filePath, '' + base + '/' + A + '-' + B + '-' + C + '-' + file, (err) => { console.log(err); });
+                // debug
+                console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
             // }
             }
             else {
-                fileList(filePath);
+                fileList(filePath); // recursion for any folders
             }
-            // let iter = 0;
-            // console.log(content.length);
-            // while(content && content.length) { // needs to turn to false
-            // for (let iter = 0; iter < content.length; ++iter) {
-            //     // r = iter % hashOffset;
-            //     r = ++iter % hashOffset;
-            //     if (r == 0) {
-            //         // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
-            //         hexTotal += content.substr(iter, 1) * 3;
-            //     }
-            //     else if (r == 1 || r == 3) {
-            //         // hexTotal += file.charAt(iter) * 7;
-            //         hexTotal += content.substr(iter, 1) * 7;
-            //     }
-            //     else if (r == 2) {
-            //         // hexTotal += file.charAt(iter) * 11;
-            //         hexTotal += content.substr(iter, 1) * 11;
-            //     }
-            // // }
-            // var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
-            // var C = hexTotal.toString(16);
-            // // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file + '.' + E);
-            // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file, (err) => { console.log(err); });
-            // }
         });
     }
     // debug
@@ -337,106 +301,16 @@ function artID(rootName) {
     // let content = fs.readFileSync(path.join(rootName, "test.txt"), 'utf8');
     // console.log(content);
 
+    // DO NOT DELETE!! call to fileList function
     fileList(rootName);
 
-    // function contentRead(filenames) {
-    //     filenames.forEach(file => {
-    //         let filePath = path.join(rootName, file);
-    //         if(fse.lstatSync(filePath).isFile()) {
-    //             let content = fs.readFileSync(filePath, 'utf8');
-    //             console.log(content);
-    //         }
-    //         else {
-    //             contentRead(fileList(filePath));
-    //         }
-    //     });
+    // debug
+    // function hexConvert(text) {
+    //     var hex = '';
+    //     for (var i = 0; i < text.length; ++i) {
+    //         hex += text.charAt(i).toString(16);
+    //     }
+    //     console.log('Hex', hex);
+    //     return hex;
     // }
-
-    //Samyak addition - experimentation 
-    // fs.readdir(rootName, function(err, files) {
-    //     if(err) {
-    //         return console.log('unable to scan directory: ' + err); 
-    //     }
-    //     files.forEach(fs.readFile(file, 'utf-8', (err, data) => {
-    //         if(err) throw err; 
-    //         console.log(file); 
-    //         console.log(data);
-    //     }
-    //     )
-    // });
-
-    // hash function
-    // filenames.forEach(file => {
-        // var iter = 0
-        // reads the contents of the file
-
-        // read the contents of file passed
-        // if(!fs.lstatSync(path.join(filePath, file)).isDirectory()) {
-        //     const content = fs.readFileSync(path.join(filePath, file), 'utf8');
-        //     console.log(content);
-        // }
-        
-        /*
-        fs.readFile(file, function(err, data) {
-            // if (err) throw err; // throws when file in undefined
-            // var contents = data;
-            console.log(file); // .DS_store is included for some reason
-            console.log(data); // either outputs nonsense or undefined
-
-            // SEARCH: file outputs undefined when it is read even though there's in it node js
-
-        }); // utf8 = buffer for english 
-        */
-        
-        // while(!contents.eof()) { // needs to turn to false
-        // for (let iter = 0; iter < contents.length; ++iter) {
-        //     r = iter % hashOffset;
-        //     // r = ++iter % hashOffset;
-        //     if (r == 0) {
-        //         // hexTotal += file.charAt(iter) * 3; // need to iterate through characters, wrong right now
-        //         hexTotal += contents.substr(iter, 1) * 3;
-        //     }
-        //     else if (r == 1 || r == 3) {
-        //         // hexTotal += file.charAt(iter) * 7;
-        //         hexTotal += contents.substr(iter, 1) * 7;
-        //     }
-        //     else if (r == 2) {
-        //         // hexTotal += file.charAt(iter) * 11;
-        //         hexTotal += contents.substr(iter, 1) * 11;
-        //     }
-        // }
-        // var B = fs.statSync(file).size.toString(16); // is size the same as file length?
-        // var C = hexTotal.toString(16);
-        // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + D + '.' + E);
-        
-    // });
-
-    // while (!fileData) { // idk how to check for EOF
-    //     // iter++;
-    //     r = ++iter % hashOffset;
-    //     if (r == 0) {
-    //         hexTotal += fileData.charAt(iter) * 3;
-    //     }
-    //     else if (r == 1 || r == 3) {
-    //         hexTotal += fileData.charAt(iter) * 7;
-    //     }
-    //     else if (r == 2) {
-    //         hexTotal += fileData.charAt(iter) * 11;
-    //     }
-    // }
-    // var C = hexTotal.toString(16); // C - hex output, needs to be truncated for overflow
-
-    function hexConvert(text) {
-        var hex = '';
-        for (var i = 0; i < text.length; ++i) {
-            hex += text.charAt(i).toString(16);
-        }
-        console.log('Hex', hex);
-        return hex;
-    }
-
-    // var A = hexConvert(rootName); // A - hex output
-    // var B = hexConvert(fileLength); // B - hex output
-
-    // console.log('' + A + '/' + B + '/' + C + '/' + D + '.' + E);
 }
