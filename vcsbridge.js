@@ -288,7 +288,10 @@ function artID(rootName) {
                 // fs.rename(file, '' + A + '/' + B + '/' + C + '/' + file + '.' + E);
                 fs.rename(filePath, '' + base + '/' + A + '-' + B + '-' + C + '-' + file, (err) => { console.log(err); });
                 // debug
-                console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
+                var artID = console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
+                /**write new file contatining all artifact ID */
+                //get targetpath -> writefile based on targetpath into local storage
+                //fs.writeFileSync(targetPath + '/artID.txt', artID, 'utf8');
             // }
             }
             else {
