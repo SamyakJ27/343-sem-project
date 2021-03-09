@@ -35,7 +35,7 @@ app.get(
         console.log('Target Path received: ' + targetPath);
         console.log('Base Name: ' + base);
 
-        if(!fs.existsSync(targetPath))
+        if (!fs.existsSync(targetPath))
             fs.mkdirSync(targetPath);
 
         // Flat Folder Hierarchy & Artifact ID starts
@@ -79,9 +79,9 @@ app.listen(
 // function fileList(filePath, targetPath) {
 function fileList(filePath, targetPath, ogsourcePath) {
     let filenames = fs.readdirSync(filePath);
-    for(let i = 0; i < filenames.length; ++i) {
+    for (let i = 0; i < filenames.length; ++i) {
         // removes dot files from list
-        if(filenames[i].charAt(0) == '.') {
+        if (filenames[i].charAt(0) == '.') {
             console.log("Removing - " + filenames[i]);
             fs.unlinkSync(path.join(filePath, filenames[i]));
             // console.log(fs.readFileSync(filenames[i], 'utf8'));
@@ -94,13 +94,12 @@ function fileList(filePath, targetPath, ogsourcePath) {
         // debug
         // console.log('File Path:', filePath)
         // var content; // contents inside the file
-        if(fse.lstatSync(filePath).isFile()) {
+        if (fse.lstatSync(filePath).isFile()) {
             var content = fs.readFileSync(filePath, 'utf8');
             // artID(filePath, content, targetPath, file);
             artID(filePath, content, targetPath, file, ogsourcePath);
             filePath = temp;
-        }
-        else {
+        } else {
             // fileList(filePath, targetPath); // recursion for any folders
             fileList(filePath, targetPath, ogsourcePath);
             filePath = temp;
@@ -125,35 +124,36 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
         r = iter % hashOffset;
         if (r == 0) {
             hexTotal += content.charCodeAt(iter) * 3;
-        }
-        else if (r == 1 || r == 3) {
+        } else if (r == 1 || r == 3) {
             hexTotal += content.charCodeAt(iter) * 7;
-        }
-        else if (r == 2) {
+        } else if (r == 2) {
             hexTotal += content.charCodeAt(iter) * 11;
         }
     }
     var pathHex = 0;
     // does not calculate/truncate for relative path
     // filePath is not the relative source project tree path
-    for(let f = 0; f < filePath.length; ++f) {
+    for (let f = 0; f < filePath.length; ++f) {
         pathHex += filePath.charCodeAt(f);
     }
-    var A = pathHex.toString(16); 
+    var A = pathHex.toString(16);
     A = A.substr(A.length - 2, A.length); // truncates hex digits
     var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
-    while(B.length < 4)
+    while (B.length < 4)
         B = '0' + B;
     var C = hexTotal.toString(16);
-    while(C.length < 4)
+    while (C.length < 4)
         C = '0' + C;
     let artifactName = A + '-' + B + '-' + C + '-' + file;
     // let name = targetPath + '/' + A + '-' + B + '-' + C + '-' + file;
     let name = targetPath + '/' + artifactName;
-    let slashMarker = filePath.lastIndexOf('/');
+    let slashMarker = filePath.lastIndexOf('/'); //windows require the \\ while the mac requires a / 
     // let tempName = filePath.substr(0, slashMarker) + '/' + A + '-' + B + '-' + C + '-' + file;
+    if (slashMarker < 0) { //this is for mac or windows users 
+        slashMarker = filePath.lastIndexOf('\\');
+    }
     let tempName = filePath.substr(0, slashMarker) + '/' + artifactName;
-        
+
     // debug
     // console.log("Hex Total:", hexTotal, "C: ", C);
     // console.log('FP:', filePath);
@@ -165,8 +165,8 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
     // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
 
-    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
-        if(err) { console.log(err); }
+    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
+        if (err) { console.log(err); }
         // NOTE: causes error if file already exists, should use fs.exists() to check for error
         fse.move(tempName, name, (err) => { console.log(err); });
     });
@@ -187,7 +187,7 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
         console.log("added " + file);
     });
     /********/
-    
+
     // debug
     // console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
 
