@@ -18,12 +18,12 @@
 
 <!--Button Functions-->
 <script>
-    function PushButton() {
-        alert("Pushed Something\nRedirecting");
+    function CheckOutButton() {
+        alert("Checked Out Something\nRedirecting");
     }
 
-    function RollbackButton() {
-        alert("Rollback Something\nRedirecting...");
+    function RemoveButton() {
+        alert("Removed Something\nRedirecting...");
     }
 
     function RepoButton() {
@@ -70,28 +70,28 @@
         <button class="pill" id="cr" onclick="RepoButton()">Create Repository</button> -->
     </div>
 
-    <div class="rollback">
+    <div class="remove">
         <form action="/get_form_text" method="GET">
             <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1"
                 name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
-            <input class="pill" id="cr" type="submit" onclick="RollbackButton()" value="Rollback" />
+            <input class="pill" id="cr" type="submit" onclick="RemoveButton()" value="Rollback" />
         </form>
         <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button class="pill" id="cr" onclick="RollbackButton()">Rollback</button> -->
+        <button class="pill" id="cr" onclick="RemoveButton()">Rollback</button> -->
     </div>
 
-    <div class="pushCode">
+    <div class="checkOut">
         <form action="/get_form_text" method="GET">
             <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                 name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
-            <input class="pill" id="cr" type="submit" onclick="PushButton()" value="Push Code" />
+            <input class="pill" id="cr" type="submit" onclick="CheckOutButton()" value="Push Code" />
         </form>
         <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
         <br><br>
-        <button class="pill" id="cr" onclick="PushButton()">Push Code</button> -->
+        <button class="pill" id="cr" onclick="CheckOutButton()">Push Code</button> -->
     </div>
 
 </body>
