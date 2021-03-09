@@ -26,14 +26,17 @@ app.get(
     function(req, res) {
         var repoName = req.query.repo_name; // ! something
         var sourcePath = req.query.source_path; // ! C:/Users/rifat/Desktop/source
-        // var targetPath = req.query.target_path + '/' + repoName; // ! C:/Users/rifat/Desktop/CSULB-2021-Spring/target
-        var targetPath = req.query.target_path;
+        var targetPath = req.query.target_path + '/' + repoName; // ! C:/Users/rifat/Desktop/CSULB-2021-Spring/target
+        // var targetPath = req.query.target_path;
         var base = path.basename(sourcePath); // ? something bc we add folder called 'something' to the end
 
         console.log('Repo Name recieved: ' + repoName);
         console.log('Source Path recieved: ' + sourcePath);
         console.log('Target Path received: ' + targetPath);
         console.log('Base Name: ' + base);
+
+        if(!fs.existsSync(targetPath))
+            fs.mkdirSync(targetPath);
 
         // Flat Folder Hierarchy & Artifact ID starts
         // fileList(sourcePath, targetPath);
@@ -162,7 +165,7 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
     // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
 
-    fse.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
+    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
         if(err) { console.log(err); }
         // NOTE: causes error if file already exists, should use fs.exists() to check for error
         fse.move(tempName, name, (err) => { console.log(err); });
