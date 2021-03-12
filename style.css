@@ -16,11 +16,7 @@ body {
     background-image: url(background.jpg);
 }
 
-.createRepo {
-    background-color: rgb(177, 222, 236);
-    padding: 20px;
-    text-align: center;
-}
+
 
 label {
     text-align: left;
@@ -35,14 +31,26 @@ label {
     padding: 10px;
 }
 
-.remove {
-    background-color: grey;
+.labeling {
+    background-color: rgb(177, 222, 236);
     padding: 20px;
     text-align: center;
 }
 
-.checkOut {
+.checkin {
+    background-color: #9FE2BF;
+    padding: 20px;
+    text-align: center;
+}
+
+.listing {
     background-color: rgb(238, 139, 125);
+    padding: 20px;
+    text-align: center;
+}
+
+.checkout {
+    background-color: rgb(190, 190, 190);
     padding: 20px;
     text-align: center;
 }

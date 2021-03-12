@@ -29,6 +29,11 @@
     function RepoButton() {
         alert("Repository Created\nRedirecting...");
     }
+
+    function ListingButton() {
+        alert("Listing files\nRedirecting...");
+    }
+    
 </script>
 
 <!-- Home Page Aesthetics -->
@@ -52,7 +57,7 @@
             <br>
     </div>
     <!-- Button Activation -->
-    <div class="createRepo">
+    <div class="labeling">
         <form action="/get_repo_form" method="GET">
             <label for="name"><br>Name of Repo Folder:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
@@ -63,35 +68,35 @@
             <label for="path"><br>Target Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="target_path" placeholder="Input target path here" required /><br></label><br>
-            <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repository" />
+            <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Labeling" />
         </form>
-        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
-        <br><br>
-        <button class="pill" id="cr" onclick="RepoButton()">Create Repository</button> -->
     </div>
 
-    <div class="remove">
+    <div class="checkin">
         <form action="/get_form_text" method="GET">
             <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1"
                 name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
-            <input class="pill" id="cr" type="submit" onclick="RemoveButton()" value="Rollback" />
+            <input class="pill" id="cr" type="submit" onclick="RemoveButton()" value="Check in" />
         </form>
-        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
-        <br><br>
-        <button class="pill" id="cr" onclick="RemoveButton()">Rollback</button> -->
     </div>
 
-    <div class="checkOut">
+    <div class="listing">
         <form action="/get_form_text" method="GET">
             <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                 name="my_input_box_text" placeholder="Input text here" required />
             <br><br>
-            <input class="pill" id="cr" type="submit" onclick="CheckOutButton()" value="Push Code" />
+            <input class="pill" id="cr" type="submit" onclick="ListingButton()" value="listing" />
         </form>
-        <!-- <textarea name="text" id="" cols="50" rows="1" placeholder="input text here"></textarea>
-        <br><br>
-        <button class="pill" id="cr" onclick="CheckOutButton()">Push Code</button> -->
+    </div>
+
+    <div class="checkout">
+        <form action="/get_form_text" method="GET">
+            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                name="my_input_box_text" placeholder="Input text here" required />
+            <br><br>
+            <input class="pill" id="cr" type="submit" onclick="CheckOutButton()" value="check out" />
+        </form>
     </div>
 
 </body>
