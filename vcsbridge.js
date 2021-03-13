@@ -20,8 +20,6 @@ const { connect } = require('http2');
 app.use(express.static('./'));
 app.get(
     '/get_repo_form',
-
-
     // req - request
     // res - result
     function(req, res) {
@@ -39,10 +37,9 @@ app.get(
         if (!fs.existsSync(targetPath))
             fs.mkdirSync(targetPath);
 
-        //Samyak's code starts here 
         counter++;
-        manifest(sourcePath, targetPath, "It worked!!");
-        //Samyak's code ends here 
+        labelName = null;
+        manifest(sourcePath, targetPath, labelName);
         fileList(sourcePath, targetPath, sourcePath);
 
         // Error Handling for existing directories
@@ -55,6 +52,27 @@ app.get(
 
         // ! for filename switch slashes to '/' not '\'
         // * filepath example: C:\Users\rifat\projects
+    }
+);
+
+/**
+ * Triggered by Check In button
+ */
+app.get(
+    '/get_checkin_form',
+    function(req, res) {
+        var labelName = req.query.label_name;
+        var sourcePath = req.query.source_path;
+        var targetPath = req.query.target_path;
+        if (!fs.existsSync(targetPath)) {
+            res.send(targetPath + " does not exist");
+        }
+        else {
+            counter++;
+            manifest(sourcePath, targetPath, labelName);
+            fileList(sourcePath, targetPath, sourcePath);
+            res.send('You can find your changes at ' + targetPath);
+        }
     }
 );
 
@@ -79,7 +97,7 @@ app.listen(
     }
 );
 
-//Samyak's code begins here
+
 function manifest(sourcePath, targetPath, labelName) {
     let a = targetPath + "/.manifest" + counter + ".txt";
     var time = new Date(); //toISOString().replace(/T/, ' ').replace(/\..+/, '') + "\n";
@@ -91,28 +109,37 @@ function manifest(sourcePath, targetPath, labelName) {
     let seconds = time.getSeconds();
     let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
 
-    fs.appendFile(a, labelName + "\n", function(err) {
-        if (err) throw err;
-        console.log("label added:" + labelName);
-    })
+    if(labelName == null) {
+        let defaultLabel = "manifest" + counter;
+        fs.appendFile(a, defaultLabel + "\n", function(err) {
+            if (err) throw err;
+            console.log("label added:" + labelName);
+        });
+    }
+    else {
+        fs.appendFile(a, labelName + "\n", function(err) {
+            if (err) throw err;
+            console.log("label added:" + labelName);
+        });
+    }
     let commandLine = "create " + sourcePath + " " + targetPath + "\n";
     fs.appendFile(a, commandLine, function(err) {
         if (err) throw err;
 
-    })
+    });
     fs.appendFile(a, timestamp, function(err) {
         if (err)
             throw err;
         console.log("added timestamp");
-    })
+    });
 }
-//Samyak's code ends here 
+
 // function fileList(filePath, targetPath) {
 function fileList(filePath, targetPath, ogsourcePath) {
     let filenames = fs.readdirSync(filePath);
     for (let i = 0; i < filenames.length; ++i) {
         // removes dot files from list
-        if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) { //samyak added stuff here as well
+        if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) { // prevents manifest dot files from being deleted
             console.log("Removing - " + filenames[i]);
             fs.unlinkSync(path.join(filePath, filenames[i]));
             // console.log(fs.readFileSync(filenames[i], 'utf8'));
@@ -209,11 +236,8 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // console.log(sub);
     // console.log(extralen);
 
-    // initial maifest file
-
-
+    // adds artifactName to manifest file
     let a = targetPath + "/.manifest" + counter + ".txt";
-
     // debug
     console.log(artifactName + " @ " + sub + "\n");
     fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
