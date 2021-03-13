@@ -9,7 +9,8 @@
 var fse = require('fs-extra');
 var fs = require('fs');
 var express = require('express');
-
+var date = new Date();
+var counter = 0;
 // only need if hidden files become a problem
 // const fs = require('fs').promises;
 
@@ -38,8 +39,10 @@ app.get(
         if (!fs.existsSync(targetPath))
             fs.mkdirSync(targetPath);
 
-        // Flat Folder Hierarchy & Artifact ID starts
-        // fileList(sourcePath, targetPath);
+        //Samyak's code starts here 
+        counter++;
+        manifest(sourcePath, targetPath, "It worked!!");
+        //Samyak's code ends here 
         fileList(sourcePath, targetPath, sourcePath);
 
         // Error Handling for existing directories
@@ -76,12 +79,40 @@ app.listen(
     }
 );
 
+//Samyak's code begins here
+function manifest(sourcePath, targetPath, labelName) {
+    let a = targetPath + "/.manifest" + counter + ".txt";
+    var time = new Date(); //toISOString().replace(/T/, ' ').replace(/\..+/, '') + "\n";
+    let year = time.getFullYear();
+    let day = time.getDate();
+    let month = time.getMonth() + 1;
+    let hour = time.getHours();
+    let minutes = time.getMinutes();
+    let seconds = time.getSeconds();
+    let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
+
+    fs.appendFile(a, labelName + "\n", function(err) {
+        if (err) throw err;
+        console.log("label added:" + labelName);
+    })
+    let commandLine = "create " + sourcePath + " " + targetPath + "\n";
+    fs.appendFile(a, commandLine, function(err) {
+        if (err) throw err;
+
+    })
+    fs.appendFile(a, timestamp, function(err) {
+        if (err)
+            throw err;
+        console.log("added timestamp");
+    })
+}
+//Samyak's code ends here 
 // function fileList(filePath, targetPath) {
 function fileList(filePath, targetPath, ogsourcePath) {
     let filenames = fs.readdirSync(filePath);
     for (let i = 0; i < filenames.length; ++i) {
         // removes dot files from list
-        if (filenames[i].charAt(0) == '.') {
+        if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) { //samyak added stuff here as well
             console.log("Removing - " + filenames[i]);
             fs.unlinkSync(path.join(filePath, filenames[i]));
             // console.log(fs.readFileSync(filenames[i], 'utf8'));
@@ -179,12 +210,16 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // console.log(extralen);
 
     // initial maifest file
-    let a = targetPath + "/mani1.txt";
+
+
+    let a = targetPath + "/.manifest" + counter + ".txt";
+
     // debug
     console.log(artifactName + " @ " + sub + "\n");
     fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
         if (err) throw err;
         console.log("added " + file);
+        console.log(artifactName + " @ " + sub);
     });
     /********/
 
