@@ -22,8 +22,8 @@
         alert("Checked Out Something\nRedirecting");
     }
 
-    function RemoveButton() {
-        alert("Removed Something\nRedirecting...");
+    function CheckInButton() {
+        alert("Checked In Something\nRedirecting...");
     }
 
     function RepoButton() {
@@ -72,11 +72,17 @@
     </div>
 
     <div class="checkin">
-        <form action="/get_form_text" method="GET">
-            <input type="text" id="repo" size="50" font-family:"Garamond, serif" cols="50" rows="1"
-                name="my_input_box_text" placeholder="Input text here" required />
-            <br><br>
-            <input class="pill" id="cr" type="submit" onclick="RemoveButton()" value="Check in" />
+        <form action="/get_checkin_form" method="GET">
+            <label for="name"><br>Name of Manifest Label:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="label_name" placeholder="Input label name here" required /><br></label>
+            <label for="path"><br>Source Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="source_path" placeholder="Input source path here" required /><br></label>
+            <label for="path"><br>Repo Target Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="target_path" placeholder="Input target path here" required /><br></label><br>
+            <input class="pill" id="cr" type="submit" onclick="CheckInButton()" value="Check In" />
         </form>
     </div>
 
