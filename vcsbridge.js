@@ -76,6 +76,12 @@ app.get(
     }
 );
 
+app.get(
+    '/get_listing_form',
+    function(req,res) {
+        res.send("check");
+    }
+)
 /* function getCurrentFilenames() { 
     console.log("\nCurrent filenames:"); 
     fs.readdirSync(__dirname).forEach(file => { 
