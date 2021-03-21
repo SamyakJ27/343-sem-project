@@ -38,9 +38,14 @@ app.get(
             fs.mkdirSync(targetPath);
 
         counter++;
-        labelName = null;
-        manifest(sourcePath, targetPath, labelName);
+        manifest(sourcePath, targetPath);
+        // labelName = null;
+        // manifest(sourcePath, targetPath, labelName);
         fileList(sourcePath, targetPath, sourcePath);
+
+        // Label File
+        let l = targetPath + "/.labels.txt"
+        fs.appendFile(l, "manifest" + counter + " - \n", (err) => { console.log(err); });
 
         // Error Handling for existing directories
         // if (!fs.existsSync(targetPath + '/' + repoName)) {
@@ -61,7 +66,7 @@ app.get(
 app.get(
     '/get_checkin_form',
     function(req, res) {
-        var labelName = req.query.label_name;
+        // var labelName = req.query.label_name;
         var sourcePath = req.query.source_path;
         var targetPath = req.query.target_path;
         if (!fs.existsSync(targetPath)) {
@@ -69,10 +74,27 @@ app.get(
         }
         else {
             counter++;
-            manifest(sourcePath, targetPath, labelName);
+            // manifest(sourcePath, targetPath, labelName);
+            manifest(sourcePath, targetPath);
             fileList(sourcePath, targetPath, sourcePath);
+            // Label File
+            let l = targetPath + "/.labels.txt"
+            fs.appendFile(l, "manifest" + counter + " - \n", (err) => { console.log(err); });
             res.send('You can find your changes at ' + targetPath);
         }
+    }
+);
+
+/**
+ * Triggered by Label button
+ */
+app.get(  // may use different names
+    '/get_label_form',   
+    function(req, res) {
+        var targetPath = req.query.target_path;   // includes manifest file name
+        // var manifestName = req.query.mani_name;   // manifest1.txt
+        var labelName = req.query.label_name;
+        labelFile(targetPath, labelName);
     }
 );
 
@@ -97,8 +119,81 @@ app.listen(
     }
 );
 
+function labelFile(targetPath, labelName) {
+    console.log("RUNNING labelFile");
+    // let labeltxt = targetPath + '/.labels.txt'
 
-function manifest(sourcePath, targetPath, labelName) {
+    // this is for mac or windows users 
+    let slashMarker = targetPath.lastIndexOf('/')
+    if (slashMarker < 0) { 
+        slashMarker = targetPath.lastIndexOf('\\');
+    }
+    let manifestFile = targetPath.substr(slashMarker + 1);
+    targetPath = targetPath.substr(0, slashMarker);
+    console.log(manifestFile);
+
+    dotMarker = manifestFile.lastIndexOf('.') - 1;
+    let manifestName = manifestFile.substr(1, dotMarker);
+    let labeltxt = targetPath.replace(targetPath, targetPath + '/.labels.txt');
+    console.log("MN", manifestName)
+    // list labels
+    // fs.appendFileSync(labeltxt, manifestName + " - " + labelName);
+    
+    // inline labels
+    fs.readFile(labeltxt, 'utf8', (err, content) => {
+        if(err) { console.log(err); return err; }
+        
+        if(content.includes(manifestName)) {
+            //stuff i wrote
+            // let re = new RegExp('^.*' + manifestName + '.*$', 'gm'); //basically it searches the line and sees if the manifest name is in hte middle and it 
+            // let oldre = re;
+            // let formatted = content.replace(re, re + ", " + labelName); //re += ", " + labelName; //makes the 
+            // content.replace(oldre, re);
+
+            // let lastMark = content.lastIndexOf("|");
+            let manNumber = manifestName.indexOf("t") + 1;
+
+            // console.log("M#", manNumber);
+            // console.log("MN", manifestName);
+            // console.log(manifestName.substr(manNumber));
+            // console.log("N#", (parseInt(manifestName.charAt(manNumber)) + 1).toString());
+
+            let nextManifest = manifestName.substr(0, manNumber) + (parseInt(manifestName.charAt(manNumber)) + 1).toString();
+            
+            console.log("NM", nextManifest);
+            let content1 = content.substr(0, content.indexOf(manifestName));
+            let content2 = content.substr(content.indexOf(nextManifest));
+            let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
+            substringManifest += " " + labelName + "\n";
+            if(content.indexOf(nextManifest) == -1) {
+                content2 = content.substr(content.lastIndexOf(" "))
+                substringManifest = content.substr(content.indexOf(manifestName));
+                substringManifest += " " + labelName + "\n";
+            }
+
+            // console.log(content2);
+            // console.log(content.indexOf(nextManifest))
+
+            content = content1 + substringManifest + content2;
+
+            console.log(content);
+
+            fs.writeFile(labeltxt, content, 'utf8', function(err) {
+              if (err) return console.log(err); 
+            });
+            //stuff i wrote ended 
+            // fs.writeFile(labeltxt,  + " " + labelName + " |", 'utf8', (err) => {
+            //     if(err) { console.log(err); return err; }
+            // });
+        }
+        else {
+            fs.appendFileSync(labeltxt, "\n" + manifestName + " - " + labelName);
+        }
+    });
+}
+
+// function manifest(sourcePath, targetPath, labelName) {
+function manifest(sourcePath, targetPath) {
     let a = targetPath + "/.manifest" + counter + ".txt";
     var time = new Date(); //toISOString().replace(/T/, ' ').replace(/\..+/, '') + "\n";
     let year = time.getFullYear();
@@ -109,19 +204,6 @@ function manifest(sourcePath, targetPath, labelName) {
     let seconds = time.getSeconds();
     let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
 
-    if(labelName == null) {
-        let defaultLabel = "manifest" + counter;
-        fs.appendFile(a, defaultLabel + "\n", function(err) {
-            if (err) throw err;
-            console.log("label added:" + labelName);
-        });
-    }
-    else {
-        fs.appendFile(a, labelName + "\n", function(err) {
-            if (err) throw err;
-            console.log("label added:" + labelName);
-        });
-    }
     let commandLine = "create " + sourcePath + " " + targetPath + "\n";
     fs.appendFile(a, commandLine, function(err) {
         if (err) throw err;
