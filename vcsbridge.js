@@ -79,9 +79,25 @@ app.get(
 app.get(
     '/get_listing_form',
     function(req,res) {
-        res.send("check");
+        //const data = fs.readFileSync('inputSourcePathHere', {encoding: 'utf-8', flag:'r'}); 
+        // ! put source folder in string so that we can print out all files in that folder
+        // ! have user input the folder path
+        res.send("List of Labels");
+        var arrayOfLabels = [];
+        if (arrayOfLabels.length === 0) {
+            res.send("There are no labels to print out!")
+        } else {
+            fs.readdir(data, (err, files) => {
+                files.forEach(file => {
+                    res.send(file);
+                });
+            });
+        }
+        fs.readdirSync(testFolder).forEach(file => {
+            console.log(file);
+          });
     }
-)
+);
 /* function getCurrentFilenames() { 
     console.log("\nCurrent filenames:"); 
     fs.readdirSync(__dirname).forEach(file => { 
