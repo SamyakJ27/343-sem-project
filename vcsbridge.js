@@ -104,12 +104,26 @@ app.get(  // may use different names
       console.log(file); 
     }); 
   }  */
-app.get(
-    '/',
-    function(req, res) {
-        res.sendFile(
-            './vcswebsite.html', { root: __dirname }
-        );
+  app.get(
+    '/get_listing_form',
+    function(req,res) {
+        //const data = fs.readFileSync('inputSourcePathHere', {encoding: 'utf-8', flag:'r'}); 
+        // ! put source folder in string so that we can print out all files in that folder
+        // ! have user input the folder path
+        res.send("List of Labels");
+        var arrayOfLabels = [];
+        if (arrayOfLabels.length === 0) {
+            res.send("There are no labels to print out!")
+        } else {
+            fs.readdir(data, (err, files) => {
+                files.forEach(file => {
+                    res.send(file);
+                });
+            });
+        }
+        fs.readdirSync(testFolder).forEach(file => {
+            console.log(file);
+          });
     }
 );
 app.listen(
