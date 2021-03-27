@@ -71,8 +71,7 @@ app.get(
         var targetPath = req.query.target_path;
         if (!fs.existsSync(targetPath)) {
             res.send(targetPath + " does not exist");
-        }
-        else {
+        } else {
             counter++;
             // manifest(sourcePath, targetPath, labelName);
             manifest(sourcePath, targetPath);
@@ -88,10 +87,10 @@ app.get(
 /**
  * Triggered by Label button
  */
-app.get(  // may use different names
-    '/get_label_form',   
+app.get( // may use different names
+    '/get_label_form',
     function(req, res) {
-        var targetPath = req.query.target_path;   // includes manifest file name
+        var targetPath = req.query.target_path; // includes manifest file name
         // var manifestName = req.query.mani_name;   // manifest1.txt
         var labelName = req.query.label_name;
         labelFile(targetPath, labelName);
@@ -104,9 +103,9 @@ app.get(  // may use different names
       console.log(file); 
     }); 
   }  */
-  app.get(
+app.get(
     '/get_listing_form',
-    function(req,res) {
+    function(req, res) {
         //const data = fs.readFileSync('inputSourcePathHere', {encoding: 'utf-8', flag:'r'}); 
         // ! put source folder in string so that we can print out all files in that folder
         // ! have user input the folder path
@@ -123,9 +122,20 @@ app.get(  // may use different names
         }
         fs.readdirSync(testFolder).forEach(file => {
             console.log(file);
-          });
+        });
     }
 );
+
+
+app.get(
+    '/',
+    function(req, res) {
+        res.sendFile(
+            './vcswebsite.html', { root: __dirname }
+        );
+    }
+);
+
 app.listen(
     3000,
     function() {
@@ -139,7 +149,7 @@ function labelFile(targetPath, labelName) {
 
     // this is for mac or windows users 
     let slashMarker = targetPath.lastIndexOf('/')
-    if (slashMarker < 0) { 
+    if (slashMarker < 0) {
         slashMarker = targetPath.lastIndexOf('\\');
     }
     let manifestFile = targetPath.substr(slashMarker + 1);
@@ -150,14 +160,14 @@ function labelFile(targetPath, labelName) {
     let manifestName = manifestFile.substr(1, dotMarker);
     let labeltxt = targetPath.replace(targetPath, targetPath + '/.labels.txt');
     console.log("MN", manifestName)
-    // list labels
-    // fs.appendFileSync(labeltxt, manifestName + " - " + labelName);
-    
+        // list labels
+        // fs.appendFileSync(labeltxt, manifestName + " - " + labelName);
+
     // inline labels
     fs.readFile(labeltxt, 'utf8', (err, content) => {
-        if(err) { console.log(err); return err; }
-        
-        if(content.includes(manifestName)) {
+        if (err) { console.log(err); return err; }
+
+        if (content.includes(manifestName)) {
             //stuff i wrote
             // let re = new RegExp('^.*' + manifestName + '.*$', 'gm'); //basically it searches the line and sees if the manifest name is in hte middle and it 
             // let oldre = re;
@@ -173,13 +183,13 @@ function labelFile(targetPath, labelName) {
             // console.log("N#", (parseInt(manifestName.charAt(manNumber)) + 1).toString());
 
             let nextManifest = manifestName.substr(0, manNumber) + (parseInt(manifestName.charAt(manNumber)) + 1).toString();
-            
+
             console.log("NM", nextManifest);
             let content1 = content.substr(0, content.indexOf(manifestName));
             let content2 = content.substr(content.indexOf(nextManifest));
             let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
             substringManifest += " " + labelName + "\n";
-            if(content.indexOf(nextManifest) == -1) {
+            if (content.indexOf(nextManifest) == -1) {
                 content2 = content.substr(content.lastIndexOf(" "))
                 substringManifest = content.substr(content.indexOf(manifestName));
                 substringManifest += " " + labelName + "\n";
@@ -193,14 +203,13 @@ function labelFile(targetPath, labelName) {
             console.log(content);
 
             fs.writeFile(labeltxt, content, 'utf8', function(err) {
-              if (err) return console.log(err); 
+                if (err) return console.log(err);
             });
             //stuff i wrote ended 
             // fs.writeFile(labeltxt,  + " " + labelName + " |", 'utf8', (err) => {
             //     if(err) { console.log(err); return err; }
             // });
-        }
-        else {
+        } else {
             fs.appendFileSync(labeltxt, "\n" + manifestName + " - " + labelName);
         }
     });
