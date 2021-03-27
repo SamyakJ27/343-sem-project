@@ -134,6 +134,16 @@ app.get(
     '/get_checkOut_text',
     function(req, res) {
         console.log("Running Checkout_form!!!");
+
+        var maniPath = req.query.mani_path;
+        console.log(maniPath);
+
+        var sourcePath = req.query.target_path;
+        console.log(sourcePath);
+
+        checkout(maniPath, sourcePath);
+
+
     }
 )
 
@@ -152,6 +162,7 @@ app.listen(
         console.log("vcsbridge.js listening on port 3000!");
     }
 );
+
 
 function labelFile(targetPath, labelName) {
     console.log("RUNNING labelFile");
@@ -238,16 +249,74 @@ function manifest(sourcePath, targetPath) {
     let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
 
     let commandLine = "create " + sourcePath + " " + targetPath + "\n";
-    fs.appendFile(a, commandLine, function(err) {
+    fs.appendFileSync(a, commandLine, function(err) {
         if (err) throw err;
 
     });
-    fs.appendFile(a, timestamp, function(err) {
+    fs.appendFileSync(a, timestamp, function(err) {
         if (err)
             throw err;
         console.log("added timestamp");
     });
+    fs.appendFileSync(a, "Files added:\n", function(err) {
+        if (err)
+            throw err;
+    })
 }
+
+
+function checkout(maniPath, sourcePath) {
+
+    // let slashMarker = targetPath.lastIndexOf('/')
+    // if (slashMarker < 0) {
+    //     slashMarker = targetPath.lastIndexOf('\\');
+    // }
+    slashMarker = maniPath.lastIndexOf('\\');
+    let manifestFile = maniPath.substr(slashMarker + 1);
+    let repoPath = maniPath.substr(0, slashMarker);
+    fs.readFile(maniPath, 'utf8', (err, content) => {
+        if (err) { console.log(err); return err; }
+
+        let filenms = content.substr(content.lastIndexOf(":") + 1);
+        console.log(filenms); //debugging as i code
+
+        /* okay so hte play is that since we read the rest of the manifest files, 
+           we divided it up into 2 substring per line with the division at the '@' 
+           then with the file name(filenam), we use the similar method that james used 
+           to copy/move files (from your artifact id) into the source path or wherever they want to copy it. 
+           the sourcepath subdirectories wil be made using a code like this 
+           let subpath = sourcepath + substring2 **note that sourcepath is unaltered and should remain that way 
+           if subpath doesn't exist then mkdir to make it   ****this is important to check if it does exist already
+           then do the same move method that is in artifact ID 
+           */
+
+        let arr = filenms.split("\n");
+        console.log("split stuff: " + arr); //debugging help
+        for (let i = 1; i < arr.length - 1; i++) {
+            console.log(i + ". " + arr[i]);
+            let artnm = arr[i].substr(0, arr[i].indexOf("@") - 1); //the full artifact id name
+            let subs = arr[i].substr(arr[i].indexOf("@") + 2); //the subdirectory 
+            //the next two line are to replace the \ with the /, i tried other methods, they didn't work 
+            let subseg = subs.split("\\");
+            subs = subseg.join("/");
+            let filenam = artnm.substr(artnm.lastIndexOf("-") + 1); //the normal file name
+            let direc = sourcePath + subs; //the full directory of where things should go 
+            console.log("artnm: " + artnm);
+            console.log("subs: " + subs);
+            console.log("normal filename: " + filenam);
+            console.log("the full path: " + direc); //you will see the issue here 
+            console.log("\n\n");
+
+            //over here need to check if subdirectory exists and create if not 
+
+
+            //over here put a similar version of hte copy method that is in hte middle of artid function 
+
+        } //nothing should extend past this brace 
+    });
+
+}
+
 
 // function fileList(filePath, targetPath) {
 function fileList(filePath, targetPath, ogsourcePath) {
