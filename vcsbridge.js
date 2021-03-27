@@ -118,7 +118,15 @@ app.get(
 
         var arrayOfLabels = fs.readFileSync(labeltxtPath, 'utf-8');
         console.log(arrayOfLabels);
-        res.send("List of Labels" + arrayOfLabels);
+        var weboutput = "";
+        for (let i = 0; i < arrayOfLabels.length; i++) {
+            // console.log(arrayOfLabels[i]);
+            if (arrayOfLabels[i] == ("\n")) {
+                weboutput += "<br>";
+            }
+            weboutput += arrayOfLabels[i];
+        }
+        res.send("List of Labels: <br>" + weboutput);
     }
 );
 
