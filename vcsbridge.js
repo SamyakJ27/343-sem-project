@@ -94,6 +94,8 @@ app.get( // may use different names
         // var manifestName = req.query.mani_name;   // manifest1.txt
         var labelName = req.query.label_name;
         labelFile(targetPath, labelName);
+        let out = "added the label " + labelName + " associated with the manifest file specified";
+        res.send(out);
     }
 );
 
@@ -118,10 +120,22 @@ app.get(
 
         var arrayOfLabels = fs.readFileSync(labeltxtPath, 'utf-8');
         console.log(arrayOfLabels);
-        res.send("List of Labels" + arrayOfLabels);
+        //samyak added this while loop - yes it need to be in a loop because it only replaces the first instance and the function replaceAll give an error
+        while (arrayOfLabels.includes("\n")) {
+            arrayOfLabels = arrayOfLabels.replace("\n", "<br>");
+        }
+        //end of samyak's addition
+        res.send("List of Labels: <br><br>" + arrayOfLabels);
     }
 );
 
+
+app.get(
+    '/get_checkOut_text',
+    function(req, res) {
+        console.log("Running Checkout_form!!!");
+    }
+)
 
 app.get(
     '/',
