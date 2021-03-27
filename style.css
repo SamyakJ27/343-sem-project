@@ -43,6 +43,12 @@ label {
     text-align: center;
 }
 
+.labeling {
+    background-color: rgb(222, 152, 240);
+    padding: 20px;
+    text-align: center;
+}
+
 .listing {
     background-color: rgb(238, 139, 125);
     padding: 20px;
