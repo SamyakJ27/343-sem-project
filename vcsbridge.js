@@ -267,13 +267,14 @@ function manifest(sourcePath, targetPath) {
 
 function checkout(maniPath, sourcePath) {
 
-    // let slashMarker = targetPath.lastIndexOf('/')
-    // if (slashMarker < 0) {
-    //     slashMarker = targetPath.lastIndexOf('\\');
-    // }
-    slashMarker = maniPath.lastIndexOf('\\');
+    let slashMarker = maniPath.lastIndexOf('/')
+    if (slashMarker < 0) {
+        slashMarker = maniPath.lastIndexOf('\\');
+    }
+    //slashMarker = maniPath.lastIndexOf('\\');
     let manifestFile = maniPath.substr(slashMarker + 1);
     let repoPath = maniPath.substr(0, slashMarker);
+    console.log(manifestFile);
     fs.readFile(maniPath, 'utf8', (err, content) => {
         if (err) { console.log(err); return err; }
 
@@ -305,12 +306,35 @@ function checkout(maniPath, sourcePath) {
             console.log("subs: " + subs);
             console.log("normal filename: " + filenam);
             console.log("the full path: " + direc); //you will see the issue here 
-            console.log("\n\n");
+            // console.log("\n");
 
+            direc = sourcePath;
+            subseg.forEach(item => {
+                console.log(item);
+                direc = path.join(direc, item);
+                if (!fs.existsSync(direc)) //direc has an extra slash at the end
+                    fs.mkdirSync(direc);
+            });
+            //direc = path.join(direc, subseg);
+            console.log("the direc with path.join(): " + direc);
+            console.log("\n");
             //over here need to check if subdirectory exists and create if not 
-
-
-            //over here put a similar version of hte copy method that is in hte middle of artid function 
+            // direc = direc.substr(0, direc.lastIndexOf("/"));
+            if (!fs.existsSync(direc)) //direc has an extra slash at the end
+                fs.mkdirSync(direc);
+            // //over here put a similar version of hte copy method that is in hte middle of artid function 
+            let name = direc + "/" + filenam;
+            let filePath = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + artnm;
+            let tempname = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + filenam;
+            console.log("name" + name);
+            console.log("filepath: " + filePath);
+            console.log("tempname: " + tempname);
+            // fs.copyFile(filePath, tempname, fs.constants.COPYFILE_FICLONE, function(err) {
+            //     if (err) { console.log(err); }
+            //     // NOTE: causes error if file already exists, should use fs.exists() to check for error
+            //     fse.move(tempname, name, (err) => { console.log(err); });
+            //     console.log("added file");
+            // });
 
         } //nothing should extend past this brace 
     });
@@ -398,11 +422,11 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
 
     // debug
     // console.log("Hex Total:", hexTotal, "C: ", C);
-    // console.log('FP:', filePath);
-    // console.log('TN:', tempName);
+    console.log('FP:', filePath);
+    console.log('TempName:', tempName);
     // console.log('TP:', targetPath);
     // console.log('F:', file);
-    // console.log('N:', name);
+    console.log('Name:', name);
     // if(fs.exists(tempName, (err) => { if(err) { console.log(err); } console.log('TempName Exists...'); }));
     // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
     // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
