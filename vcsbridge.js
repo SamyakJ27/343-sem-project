@@ -45,7 +45,7 @@ app.get(
 
         // Label File
         let l = targetPath + "/.labels.txt"
-        fs.appendFile(l, "manifest" + counter + " - \n", (err) => { console.log(err); });
+        fs.appendFile(l, "manifest" + counter + " - ", (err) => { console.log(err); });
 
         // Error Handling for existing directories
         // if (!fs.existsSync(targetPath + '/' + repoName)) {
@@ -78,7 +78,7 @@ app.get(
             fileList(sourcePath, targetPath, sourcePath);
             // Label File
             let l = targetPath + "/.labels.txt"
-            fs.appendFile(l, "manifest" + counter + " - \n", (err) => { console.log(err); });
+            fs.appendFile(l, "\nmanifest" + counter + " - ", (err) => { console.log(err); }); //the \n should be after the -
             res.send('You can find your changes at ' + targetPath);
         }
     }
@@ -211,9 +211,11 @@ function labelFile(targetPath, labelName) {
             let content2 = content.substr(content.indexOf(nextManifest));
             let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
             substringManifest += " " + labelName + "\n";
-            if (content.indexOf(nextManifest) == -1) {
-                content2 = content.substr(content.lastIndexOf(" "))
+            if (content.indexOf(nextManifest) == -1 || counter == parseInt(manifestName.charAt(manNumber))) {
+                //content2 = content.substr(content.lastIndexOf(" "))
+                content2 = "";
                 substringManifest = content.substr(content.indexOf(manifestName));
+
                 substringManifest += " " + labelName + "\n";
             }
 
