@@ -267,14 +267,15 @@ function manifest(sourcePath, targetPath) {
 
 function checkout(maniPath, sourcePath) {
 
-    let slashMarker = maniPath.lastIndexOf('/')
+    var slashMarker = maniPath.lastIndexOf('/')
     if (slashMarker < 0) {
         slashMarker = maniPath.lastIndexOf('\\');
     }
-    //slashMarker = maniPath.lastIndexOf('\\');
     let manifestFile = maniPath.substr(slashMarker + 1);
-    let repoPath = maniPath.substr(0, slashMarker);
-    console.log(manifestFile);
+    var repoPath = maniPath.substr(0, slashMarker);
+    // let manifestFile = maniPath.substr(slashMarker + 1);
+    // let repoPath = maniPath.substr(0, slashMarker);
+    // console.log(manifestFile);
     fs.readFile(maniPath, 'utf8', (err, content) => {
         if (err) { console.log(err); return err; }
 
@@ -298,7 +299,11 @@ function checkout(maniPath, sourcePath) {
             let artnm = arr[i].substr(0, arr[i].indexOf("@") - 1); //the full artifact id name
             let subs = arr[i].substr(arr[i].indexOf("@") + 2); //the subdirectory 
             //the next two line are to replace the \ with the /, i tried other methods, they didn't work 
-            let subseg = subs.split("\\");
+            
+            var slashCheck = maniPath.indexOf('/')
+            if (slashCheck < 0) { subseg = subs.split('\\'); }
+            else { subseg = subs.split('/'); }
+            
             subs = subseg.join("/");
             let filenam = artnm.substr(artnm.lastIndexOf("-") + 1); //the normal file name
             let direc = sourcePath + subs; //the full directory of where things should go 
@@ -309,26 +314,43 @@ function checkout(maniPath, sourcePath) {
             // console.log("\n");
 
             direc = sourcePath;
+            console.log(subseg)
             subseg.forEach(item => {
                 console.log(item);
                 direc = path.join(direc, item);
+                console.log("DIR", direc);
                 if (!fs.existsSync(direc)) //direc has an extra slash at the end
                     fs.mkdirSync(direc);
-            });
+                });
             //direc = path.join(direc, subseg);
             console.log("the direc with path.join(): " + direc);
             console.log("\n");
+            
+            // debug
+            console.log("\nmani path:", maniPath);
+            console.log("repo path:", repoPath);
+            console.log("manifest file:", manifestFile);
+            //over here put a similar version of hte copy method that is in hte middle of artid function 
+            let originalFile = repoPath + '/' + artnm;
+            let checkoutDirec = direc + '/' + filenam;
+            let tempName = repoPath.substr(0, slashMarker) + '/' + filenam;
+            console.log("TM", tempName);
+            fs.copyFile(originalFile, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
+                if (err) { console.log(err); }
+                fse.move(tempName, checkoutDirec, (err) => { console.log(err); });
+            });
+
             //over here need to check if subdirectory exists and create if not 
             // direc = direc.substr(0, direc.lastIndexOf("/"));
-            if (!fs.existsSync(direc)) //direc has an extra slash at the end
-                fs.mkdirSync(direc);
+            // if (!fs.existsSync(direc)) //direc has an extra slash at the end
+            //     fs.mkdirSync(direc);
             // //over here put a similar version of hte copy method that is in hte middle of artid function 
-            let name = direc + "/" + filenam;
-            let filePath = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + artnm;
-            let tempname = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + filenam;
-            console.log("name" + name);
-            console.log("filepath: " + filePath);
-            console.log("tempname: " + tempname);
+            // let name = direc + "/" + filenam;
+            // let filePath = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + artnm;
+            // let tempname = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + filenam;
+            // console.log("name" + name);
+            // console.log("filepath: " + filePath);
+            // console.log("tempname: " + tempname);
             // fs.copyFile(filePath, tempname, fs.constants.COPYFILE_FICLONE, function(err) {
             //     if (err) { console.log(err); }
             //     // NOTE: causes error if file already exists, should use fs.exists() to check for error
