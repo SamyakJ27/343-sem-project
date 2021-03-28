@@ -143,6 +143,7 @@ app.get(
 
         checkout(maniPath, sourcePath);
 
+        res.send('You can find ' + maniPath.substr(maniPath.lastIndexOf("/") + 1) + ' files at ' + sourcePath);
 
     }
 )
@@ -299,12 +300,17 @@ function checkout(maniPath, sourcePath) {
             let artnm = arr[i].substr(0, arr[i].indexOf("@") - 1); //the full artifact id name
             let subs = arr[i].substr(arr[i].indexOf("@") + 2); //the subdirectory 
             //the next two line are to replace the \ with the /, i tried other methods, they didn't work 
-            
-            var slashCheck = maniPath.indexOf('/')
-            if (slashCheck < 0) { subseg = subs.split('\\'); }
-            else { subseg = subs.split('/'); }
-            
-            subs = subseg.join("/");
+
+            var slashCheck = subs.indexOf('/')
+            if (slashCheck < 0) {
+                subseg = subs.split('\\');
+                subs = subseg.join("/"); //changed \\ to /
+            } else {
+                subseg = subs.split('/');
+                subs = subseg.join("/");
+            }
+
+            //subs = subseg.join("/");
             let filenam = artnm.substr(artnm.lastIndexOf("-") + 1); //the normal file name
             let direc = sourcePath + subs; //the full directory of where things should go 
             console.log("artnm: " + artnm);
@@ -321,23 +327,27 @@ function checkout(maniPath, sourcePath) {
                 console.log("DIR", direc);
                 if (!fs.existsSync(direc)) //direc has an extra slash at the end
                     fs.mkdirSync(direc);
-                });
+            });
             //direc = path.join(direc, subseg);
             console.log("the direc with path.join(): " + direc);
             console.log("\n");
-            
+
             // debug
             console.log("\nmani path:", maniPath);
             console.log("repo path:", repoPath);
             console.log("manifest file:", manifestFile);
             //over here put a similar version of hte copy method that is in hte middle of artid function 
-            let originalFile = repoPath + '/' + artnm;
-            let checkoutDirec = direc + '/' + filenam;
-            let tempName = repoPath.substr(0, slashMarker) + '/' + filenam;
+            let originalFile = path.join(repoPath, artnm); //repoPath + '/' + artnm;
+            let checkoutDirec = path.join(direc, filenam); //direc + '/' + filenam;
+            let tempName = path.join(repoPath.substr(0, slashMarker), filenam); //repoPath.substr(0, slashMarker) + '/' + filenam;
             console.log("TM", tempName);
-            fs.copyFile(originalFile, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
+            console.log("checkout Directory: ", checkoutDirec);
+            console.log("original File", originalFile);
+            console.log("\n");
+            fs.copyFile(originalFile, checkoutDirec, fs.constants.COPYFILE_FICLONE, function(err) {
                 if (err) { console.log(err); }
-                fse.move(tempName, checkoutDirec, (err) => { console.log(err); });
+                console.log("after copied:", tempName);
+                //fse.move(tempName, checkoutDirec, (err) => { console.log(err); });
             });
 
             //over here need to check if subdirectory exists and create if not 
