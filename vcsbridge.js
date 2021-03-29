@@ -141,9 +141,34 @@ app.get(
         var sourcePath = req.query.target_path;
         console.log(sourcePath);
 
-        checkout(maniPath, sourcePath);
+        var maniname = req.query.mani_label_name;
+        console.log(maniname);
 
-        res.send('You can find ' + maniPath.substr(maniPath.lastIndexOf("/") + 1) + ' files at ' + sourcePath);
+        if (maniname.includes("manifest")) {
+            maniPath = path.join(maniPath, maniname);
+            checkout(maniPath, sourcePath);
+        } else {
+            let labelpath = maniPath + "/.labels.txt";
+            fs.readFile(labelpath, 'utf8', (err, content) => {
+                if (err) { console.log(err); return err; }
+
+                let labels = content.split("\n");
+                console.log("line 157 and labels: ", labels);
+                labels.forEach(line => {
+                    if (line.includes(maniname)) {
+                        console.log("line 160 and line: ", line);
+                        let manifestnum = "." + line.substr(0, 9) + ".txt";
+                        console.log("manifestname from line:", manifestnum);
+                        maniPath = path.join(maniPath, manifestnum);
+                        checkout(maniPath, sourcePath);
+                    }
+                });
+
+            });
+        }
+        //checkout(maniPath, sourcePath);
+
+        res.send('You can find ' + maniname + ' files at ' + sourcePath);
 
     }
 )
