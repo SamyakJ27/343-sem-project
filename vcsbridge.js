@@ -215,11 +215,6 @@ function labelFile(targetPath, labelName) {
         if (err) { console.log(err); return err; }
 
         if (content.includes(manifestName)) {
-            //stuff i wrote
-            // let re = new RegExp('^.*' + manifestName + '.*$', 'gm'); //basically it searches the line and sees if the manifest name is in hte middle and it 
-            // let oldre = re;
-            // let formatted = content.replace(re, re + ", " + labelName); //re += ", " + labelName; //makes the 
-            // content.replace(oldre, re);
 
             // let lastMark = content.lastIndexOf("|");
             let manNumber = manifestName.indexOf("t") + 1;
@@ -241,7 +236,7 @@ function labelFile(targetPath, labelName) {
                 content2 = "";
                 substringManifest = content.substr(content.indexOf(manifestName));
 
-                substringManifest += " " + labelName + "\n";
+                substringManifest += " " + labelName;
             }
 
             // console.log(content2);
@@ -376,24 +371,6 @@ function checkout(maniPath, sourcePath) {
                 console.log("after copied:", tempName);
                 //fse.move(tempName, checkoutDirec, (err) => { console.log(err); });
             });
-
-            //over here need to check if subdirectory exists and create if not 
-            // direc = direc.substr(0, direc.lastIndexOf("/"));
-            // if (!fs.existsSync(direc)) //direc has an extra slash at the end
-            //     fs.mkdirSync(direc);
-            // //over here put a similar version of hte copy method that is in hte middle of artid function 
-            // let name = direc + "/" + filenam;
-            // let filePath = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + artnm;
-            // let tempname = maniPath.substr(0, maniPath.lastIndexOf("/")) + "/" + filenam;
-            // console.log("name" + name);
-            // console.log("filepath: " + filePath);
-            // console.log("tempname: " + tempname);
-            // fs.copyFile(filePath, tempname, fs.constants.COPYFILE_FICLONE, function(err) {
-            //     if (err) { console.log(err); }
-            //     // NOTE: causes error if file already exists, should use fs.exists() to check for error
-            //     fse.move(tempname, name, (err) => { console.log(err); });
-            //     console.log("added file");
-            // });
 
         } //nothing should extend past this brace 
     });
