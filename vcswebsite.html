@@ -16,29 +16,11 @@
     <link rel="stylesheet" href="style.css" type="text/css">
 </head>
 
-<!--Button Functions-->
-<script>
-    function CheckOutButton() {
-        alert("Checked Out Something\nRedirecting");
-    }
-
-    function CheckInButton() {
-        alert("Checked In Something\nRedirecting...");
-    }
-
-    function RepoButton() {
-        alert("Repository Created\nRedirecting...");
-    }
-
-    function ListingButton() {
-        alert("Listing files\nRedirecting...");
-    }
-</script>
-
 <!-- Home Page Aesthetics -->
 
 <body>
     <nav>
+        <!-- Row of buttons at top of website for simple redirection -->
         <ul>
             <!-- Need usable links, and webpage redirection -->
             <li><a href="#home">Home</a></li>
@@ -55,7 +37,10 @@
             <h4>&#8482;</h4></sub>
             <br>
     </div>
-    <!-- Button Activation -->
+
+    <!-- Buttons -->
+
+    <!-- Create Repo Button -->
     <div class="createrepo">
         <form action="/get_repo_form" method="GET">
             <label for="name"><br>Name of Repo Folder:<br>
@@ -67,10 +52,11 @@
             <label for="path"><br>Target Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="target_path" placeholder="Input target path here" required /><br></label><br>
-            <input class="pill" id="cr" type="submit" onclick="RepoButton()" value="Create Repo" />
+            <input class="pill" id="cr" type="submit" value="Create Repo" />
         </form>
     </div>
 
+    <!-- Check In Button -->
     <div class="checkin">
         <form action="/get_checkin_form" method="GET">
             <label for="path"><br>Source Path Directory:<br>
@@ -79,10 +65,11 @@
             <label for="path"><br>Repo Target Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="target_path" placeholder="Input target path here" required /><br></label><br>
-            <input class="pill" id="cr" type="submit" onclick="CheckInButton()" value="Check In" />
+            <input class="pill" id="cr" type="submit" value="Check In" />
         </form>
     </div>
 
+    <!-- Labeling Button -->
     <div class="labeling">
         <form action="/get_label_form" method="GET">
             <label for="path"><br>Target Path Directory:<br>
@@ -91,19 +78,21 @@
             <label for="path"><br>Label Name:<br>
                   <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                       name="label_name" placeholder="Input label name here" required /><br></label><br>
-            <input class="pill" id="cr" type="submit" onclick="ListingButton()" value="Labeling" />
+            <input class="pill" id="cr" type="submit" value="Labeling" />
         </form>
     </div>
 
+    <!-- Listing Button -->
     <div class="listing">
         <form action="/get_listing_form" method="GET">
             <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                 name="repo_path" placeholder="Input text here" required />
             <br><br>
-            <input class="pill" id="cr" type="submit" onclick="ListingButton()" value="Listing" />
+            <input class="pill" id="cr" type="submit" value="Listing" />
         </form>
     </div>
 
+    <!-- Check Out Button -->
     <div class="checkout">
         <form action="/get_checkOut_text" method="GET">
             <label for="path"><br>Repo Path Directory:<br>
@@ -116,7 +105,7 @@
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="mani_label_name" placeholder="Input manifest file (don't forget the first .) or label name here" required /><br></label>  
             <br>
-            <input class="pill" id="cr" type="submit" onclick="CheckOutButton()" value="Check out" />
+            <input class="pill" id="cr" type="submit" value="Check out" />
         </form>
     </div>
 

@@ -9,49 +9,44 @@
 var fse = require('fs-extra');
 var fs = require('fs');
 var express = require('express');
-var date = new Date();
-var counter = 0;
-// only need if hidden files become a problem
-// const fs = require('fs').promises;
-
 var app = express();
 const path = require('path');
-const { connect } = require('http2');
 app.use(express.static('./'));
+
+// Global manifest number for manifest file ordering
+// NOTE: value does not retain previous values from previous programs
+var manifest_num = 0;
+
+/**
+ * Create Repo
+ */
 app.get(
-    '/get_repo_form',
+    '/get_repo_form',   // locates the create repo button in the HTML file
     // req - request
     // res - result
     function(req, res) {
+        // Text box information
         var repoName = req.query.repo_name; // ! something
         var sourcePath = req.query.source_path; // ! C:/Users/rifat/Desktop/source
         var targetPath = req.query.target_path + '/' + repoName; // ! C:/Users/rifat/Desktop/CSULB-2021-Spring/target
-        // var targetPath = req.query.target_path;
-        var base = path.basename(sourcePath); // ? something bc we add folder called 'something' to the end
-
+        
+        // debug
         console.log('Repo Name recieved: ' + repoName);
         console.log('Source Path recieved: ' + sourcePath);
         console.log('Target Path received: ' + targetPath);
-        console.log('Base Name: ' + base);
 
+        // Creates new directory if target directory does not exist
         if (!fs.existsSync(targetPath))
             fs.mkdirSync(targetPath);
 
-        counter++;
-        manifest(sourcePath, targetPath);
-        // labelName = null;
-        // manifest(sourcePath, targetPath, labelName);
-        fileList(sourcePath, targetPath, sourcePath);
+        // Increment global manifest counter, runs manifest function, transfer files
+        manifest_num++;
+        build_manifest(sourcePath, targetPath);
+        tramsfer_files(sourcePath, targetPath, sourcePath);
 
         // Label File
-        let l = targetPath + "/.labels.txt"
-        fs.appendFile(l, "manifest" + counter + " - ", (err) => { console.log(err); });
-
-        // Error Handling for existing directories
-        // if (!fs.existsSync(targetPath + '/' + repoName)) {
-        //     fs.mkdirSync(targetPath + '/' + repoName);
-        //     targetPath = targetPath + '/' + repoName;
-        // }
+        let l = targetPath + "/.labels.txt";   // adds new dot file in repo
+        fs.appendFile(l, "manifest" + manifest_num + " - ", (err) => { console.log(err); });   // writes initial manifest label
 
         res.send('You can find ' + repoName + ' repo at ' + targetPath);
 
@@ -61,89 +56,109 @@ app.get(
 );
 
 /**
- * Triggered by Check In button
+ * Check In
  */
 app.get(
-    '/get_checkin_form',
+    '/get_checkin_form',   // locates the check in button in the HTML file
     function(req, res) {
-        // var labelName = req.query.label_name;
+        // Text box information
+        // var labelName = req.query.label_name;   // no frills, used to label manifest upon check in
         var sourcePath = req.query.source_path;
         var targetPath = req.query.target_path;
+
+        // checks if the given target directory path exists
+        // sends error message if it does not exist
         if (!fs.existsSync(targetPath)) {
             res.send(targetPath + " does not exist");
         } else {
-            counter++;
-            // manifest(sourcePath, targetPath, labelName);
-            manifest(sourcePath, targetPath);
-            fileList(sourcePath, targetPath, sourcePath);
-            // Label File
+            manifest_num++;   // increments global manifest number
+            // build_manifest(sourcePath, targetPath, labelName);   // again no frills
+            build_manifest(sourcePath, targetPath);
+            tramsfer_files(sourcePath, targetPath, sourcePath);
+
+            // Appends to the already existing label file with the updated manifest file and manifest number
             let l = targetPath + "/.labels.txt"
-            fs.appendFile(l, "\nmanifest" + counter + " - ", (err) => { console.log(err); }); //the \n should be after the -
+            fs.appendFile(l, "\nmanifest" + manifest_num + " - ", (err) => { console.log(err); });
             res.send('You can find your changes at ' + targetPath);
         }
     }
 );
 
 /**
- * Triggered by Label button
+ * Labeling
  */
-app.get( // may use different names
-    '/get_label_form',
+app.get(
+    '/get_label_form',   // locates the label button in the HTML file
     function(req, res) {
+        // Text box information
+        // var manifestName = req.query.mani_name;   // no frills
         var targetPath = req.query.target_path; // includes manifest file name
-        // var manifestName = req.query.mani_name;   // manifest1.txt
         var labelName = req.query.label_name;
-        labelFile(targetPath, labelName);
+
+        // Appends label name to the labels file
+        append_label(targetPath, labelName);
+
         let out = "added the label " + labelName + " associated with the manifest file specified";
         res.send(out);
     }
 );
 
-/* function getCurrentFilenames() { 
-    console.log("\nCurrent filenames:"); 
-    fs.readdirSync(__dirname).forEach(file => { 
-      console.log(file); 
-    }); 
-  }  */
+/**
+ * Listing
+ */
 app.get(
-    '/get_listing_form',
+    '/get_listing_form',   // locates the label button in the HTML file
     function(req, res) {
-        console.log("RUNNING listing_form");
-        //const data = fs.readFileSync('inputSourcePathHere', {encoding: 'utf-8', flag:'r'}); 
+        // debug
+        // console.log("RUNNING listing_form");
+
         // ! put source folder in string so that we can print out all files in that folder
         // ! have user input the folder path
 
+        // Text box information
         let repoPath = req.query.repo_path;
-        console.log(repoPath);
         var labeltxtPath = path.join(repoPath, '/.labels.txt');
-        console.log(labeltxtPath)
+        // debug
+        // console.log(repoPath);
+        // console.log(labeltxtPath)
 
-        var arrayOfLabels = fs.readFileSync(labeltxtPath, 'utf-8');
-        console.log(arrayOfLabels);
-        //samyak added this while loop - yes it need to be in a loop because it only replaces the first instance and the function replaceAll give an error
+        var arrayOfLabels = fs.readFileSync(labeltxtPath, 'utf-8');   // need all the strings in the labels file to iterate and add in <br>'s (new lines)
+        // debug
+        // console.log(arrayOfLabels);
+
+        // Replaces every \n with a <br> to be registered as a new line in the HTML
+        // easy reading of list
+        // NOTE: function replaceAll gives an error hence the while loop
         while (arrayOfLabels.includes("\n")) {
             arrayOfLabels = arrayOfLabels.replace("\n", "<br>");
         }
-        //end of samyak's addition
+
         res.send("List of Labels: <br><br>" + arrayOfLabels);
     }
 );
 
-
+/**
+ * Listing
+ */
 app.get(
-    '/get_checkOut_text',
+    '/get_checkOut_text',   // locates the check out button in the HTML file
     function(req, res) {
-        console.log("Running Checkout_form!!!");
+        // debug
+        // console.log("Running Checkout_form!!!");
 
+        // Text box information
         var maniPath = req.query.mani_path;
-        console.log(maniPath);
-
         var sourcePath = req.query.target_path;
-        console.log(sourcePath);
-
         var maniname = req.query.mani_label_name;
-        console.log(maniname);
+        
+        // debug
+        // console.log(maniPath);
+        // console.log(sourcePath);
+        // console.log(maniname);
 
+        // checks if the provided manifest name is a .manifest# or an associated label to the manifest
+        // if name includes "manifest" in it then run with the manifest name
+        // else determine which is manifest file name with the label name provided
         if (maniname.includes("manifest")) {
             maniPath = path.join(maniPath, maniname);
             checkout(maniPath, sourcePath);
@@ -153,10 +168,14 @@ app.get(
                 if (err) { console.log(err); return err; }
 
                 let labels = content.split("\n");
-                console.log("line 157 and labels: ", labels);
+                // debug
+                // console.log("line 157 and labels: ", labels);
+
+                // determines which manfiest name is associated with the label name provided
                 labels.forEach(line => {
                     if (line.includes(maniname)) {
-                        console.log("line 160 and line: ", line);
+                        // debug
+                        // console.log("line 160 and line: ", line);
                         let manifestnum = "." + line.substr(0, 9) + ".txt";
                         console.log("manifestname from line:", manifestnum);
                         maniPath = path.join(maniPath, manifestnum);
@@ -166,13 +185,14 @@ app.get(
 
             });
         }
-        //checkout(maniPath, sourcePath);
 
         res.send('You can find ' + maniname + ' files at ' + sourcePath);
-
     }
 )
 
+/**
+ * Home page
+ */
 app.get(
     '/',
     function(req, res) {
@@ -182,6 +202,9 @@ app.get(
     }
 );
 
+/**
+ * Port # the home page is located on
+ */
 app.listen(
     3000,
     function() {
@@ -189,8 +212,12 @@ app.listen(
     }
 );
 
-
-function labelFile(targetPath, labelName) {
+/**
+ * Appends a label name to the .labels.txt file.
+ * @param targetPath - includes the target directory and the manifest file being labeled
+ * @param labelName - the label name provided
+ */
+function append_label(targetPath, labelName) {
     console.log("RUNNING labelFile");
     // let labeltxt = targetPath + '/.labels.txt'
 
@@ -231,7 +258,7 @@ function labelFile(targetPath, labelName) {
             let content2 = content.substr(content.indexOf(nextManifest));
             let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
             substringManifest += " " + labelName + "\n";
-            if (content.indexOf(nextManifest) == -1 || counter == parseInt(manifestName.charAt(manNumber))) {
+            if (content.indexOf(nextManifest) == -1 || manifest_num == parseInt(manifestName.charAt(manNumber))) {
                 //content2 = content.substr(content.lastIndexOf(" "))
                 content2 = "";
                 substringManifest = content.substr(content.indexOf(manifestName));
@@ -259,9 +286,9 @@ function labelFile(targetPath, labelName) {
     });
 }
 
-// function manifest(sourcePath, targetPath, labelName) {
-function manifest(sourcePath, targetPath) {
-    let a = targetPath + "/.manifest" + counter + ".txt";
+// function build_manifest(sourcePath, targetPath, labelName) {
+function build_manifest(sourcePath, targetPath) {
+    let a = targetPath + "/.manifest" + manifest_num + ".txt";
     var time = new Date(); //toISOString().replace(/T/, ' ').replace(/\..+/, '') + "\n";
     let year = time.getFullYear();
     let day = time.getDate();
@@ -378,8 +405,8 @@ function checkout(maniPath, sourcePath) {
 }
 
 
-// function fileList(filePath, targetPath) {
-function fileList(filePath, targetPath, ogsourcePath) {
+// function tramsfer_files(filePath, targetPath) {
+function tramsfer_files(filePath, targetPath, ogsourcePath) {
     let filenames = fs.readdirSync(filePath);
     for (let i = 0; i < filenames.length; ++i) {
         // removes dot files from list
@@ -402,8 +429,8 @@ function fileList(filePath, targetPath, ogsourcePath) {
             artID(filePath, content, targetPath, file, ogsourcePath);
             filePath = temp;
         } else {
-            // fileList(filePath, targetPath); // recursion for any folders
-            fileList(filePath, targetPath, ogsourcePath);
+            // tramsfer_files(filePath, targetPath); // recursion for any folders
+            tramsfer_files(filePath, targetPath, ogsourcePath);
             filePath = temp;
         }
     });
@@ -481,7 +508,7 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // console.log(extralen);
 
     // adds artifactName to manifest file
-    let a = targetPath + "/.manifest" + counter + ".txt";
+    let a = targetPath + "/.manifest" + manifest_num + ".txt";
     // debug
     console.log(artifactName + " @ " + sub + "\n");
     fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
