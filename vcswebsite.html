@@ -105,7 +105,41 @@
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="mani_label_name" placeholder="Input manifest file (don't forget the first .) or label name here" required /><br></label>  
             <br>
-            <input class="pill" id="cr" type="submit" value="Check out" />
+            <input class="pill" id="cr" type="submit" value="Check Out" />
+        </form>
+    </div>
+
+    <!-- Merge Out Button -->
+    <div class="mergeout">
+        <form action="/get_mergeout_text" method="GET">
+            <label for="path"><br>Repo Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="mani_path" placeholder="Input repo path directory here" required /><br></label>
+            <label for="path"><br>Source Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="target_path" placeholder="Input target path here" required /><br></label>  
+            <label for="path"><br>manifest file name or label name:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="mani_label_name" placeholder="Input manifest file (don't forget the first .) or label name here" required /><br></label>  
+            <br>
+            <input class="pill" id="cr" type="submit" value="Merge Out" />
+        </form>
+    </div>
+
+    <!-- Merge In Button -->
+    <div class="mergein">
+        <form action="/get_mergein_text" method="GET">
+            <label for="path"><br>Source Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="mani_path" placeholder="Input repo path directory here" required /><br></label>
+            <label for="path"><br>Repo Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="target_path" placeholder="Input target path here" required /><br></label>  
+            <label for="path"><br>manifest file name or label name:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="mani_label_name" placeholder="Input manifest file (don't forget the first .) or label name here" required /><br></label>  
+            <br>
+            <input class="pill" id="cr" type="submit" value="Merge In" />
         </form>
     </div>
 
