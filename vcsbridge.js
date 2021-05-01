@@ -17,6 +17,20 @@ app.use(express.static('./'));
 /** @param {int} manifest_num - Global manifest number for manifest file ordering */
 var manifest_num = 0;
 
+app.get(
+    '/get_mergeout_text',
+    function(req,res) {
+
+    }
+);
+
+app.get(
+    '/get_mergein_text',
+    function(req,res) {
+
+    }
+);
+
 /**
  * Create Repo
  */
