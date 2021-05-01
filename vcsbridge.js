@@ -20,16 +20,48 @@ var manifest_num = 0;
 app.get(
     '/get_mergeout_text',
     function(req,res) {
+        var sourcePath = req.query.source_path;
+        var repoPath = req.query.repo_path;
 
+        merge_out(sourcePath, repoPath);
     }
 );
+
+/**
+ * 
+ * @param {string} sourcePath 
+ * @param {string} repoPath 
+ */
+function merge_out(sourcePath, repoPath) {
+    /* 
+    merge out is only part 1 of the merge process
+    so maybe want to transfer the files over to the repo in a changes directory
+    then user can manually do the merge there and
+    merge in will transfer those files in the changes directory into the repo?
+    */
+    changes_direc = path.join(repoPath, "changes");
+    transfer_files(sourcePath, changes_direc, sourcePath);
+
+}
 
 app.get(
     '/get_mergein_text',
     function(req,res) {
+        var repoPath = req.query.repo_path;
+        var targetPath = req.query.target_path;
 
+        merge_in(repoPath, targetPath);
     }
 );
+
+/**
+ * 
+ * @param {string} repoPath 
+ * @param {string} targetPath 
+ */
+function merge_in(repoPath, targetPath) {
+
+}
 
 /**
  * Create Repo
