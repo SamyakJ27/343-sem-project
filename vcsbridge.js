@@ -13,8 +13,8 @@ var app = express();
 const path = require('path');
 app.use(express.static('./'));
 
-// Global manifest number for manifest file ordering
 // NOTE: value does not retain previous values from previous programs
+/** @param {int} manifest_num - Global manifest number for manifest file ordering */
 var manifest_num = 0;
 
 /**
@@ -42,7 +42,7 @@ app.get(
         // Increment global manifest counter, runs manifest function, transfer files
         manifest_num++;
         build_manifest(sourcePath, targetPath);
-        tramsfer_files(sourcePath, targetPath, sourcePath);
+        transfer_files(sourcePath, targetPath, sourcePath);
 
         // Label File
         let l = targetPath + "/.labels.txt";   // adds new dot file in repo
@@ -74,7 +74,7 @@ app.get(
             manifest_num++;   // increments global manifest number
             // build_manifest(sourcePath, targetPath, labelName);   // again no frills
             build_manifest(sourcePath, targetPath);
-            tramsfer_files(sourcePath, targetPath, sourcePath);
+            transfer_files(sourcePath, targetPath, sourcePath);
 
             // Appends to the already existing label file with the updated manifest file and manifest number
             let l = targetPath + "/.labels.txt"
@@ -83,6 +83,40 @@ app.get(
         }
     }
 );
+
+/**
+ * Builds the manifest and writes the necessary information
+ * @param {string} sourcePath - source project tree path
+ * @param {string} targetPath - target repository path
+ */
+function build_manifest(sourcePath, targetPath) {
+    let a = targetPath + "/.manifest" + manifest_num + ".txt";
+    // Date object used for the today's date and time manifest is created
+    var time = new Date();
+    let year = time.getFullYear();
+    let day = time.getDate();
+    let month = time.getMonth() + 1;
+    let hour = time.getHours();
+    let minutes = time.getMinutes();
+    let seconds = time.getSeconds();
+    let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
+
+    // Information that is written in header of manifest file
+    let commandLine = "create " + sourcePath + " " + targetPath + "\n";
+    fs.appendFileSync(a, commandLine, function(err) {
+        if (err) throw err;
+    });
+    fs.appendFileSync(a, timestamp, function(err) {
+        if (err)
+            throw err;
+        // debug
+        // console.log("added timestamp");
+    });
+    fs.appendFileSync(a, "Files added:\n", function(err) {
+        if (err)
+            throw err;
+    })
+}
 
 /**
  * Labeling
@@ -102,6 +136,84 @@ app.get(
         res.send(out);
     }
 );
+
+/**
+ * Appends a label name to the .labels.txt file.
+ * @param {string} targetPath - includes the target directory and the manifest file being labeled
+ * @param {string} labelName - the label name provided
+ */
+function append_label(targetPath, labelName) {
+    // debug
+    // console.log("RUNNING labelFile");
+    // let labeltxt = targetPath + '/.labels.txt'
+
+    let manifestFile = targetPath.substr(last_slash_mark(targetPath) + 1);
+
+    targetPath = targetPath.substr(0, last_slash_mark(targetPath));
+    // debug
+    // console.log(manifestFile);
+
+    dotMarker = manifestFile.lastIndexOf('.') - 1;
+    let manifestName = manifestFile.substr(1, dotMarker);
+    let labeltxt = targetPath.replace(targetPath, targetPath + '/.labels.txt');
+    // debug
+    // console.log("MN", manifestName)
+    // fs.appendFileSync(labeltxt, manifestName + " - " + labelName);
+
+    // inline labels
+    fs.readFile(labeltxt, 'utf8', (err, content) => {
+        if (err) { console.log(err); return err; }
+
+        // locates the manifest name
+        // if manifest name is in the list of manifests then add label to the manifest
+        // else add the manifest name and label
+        if (content.includes(manifestName)) {
+
+            let manNumber = manifestName.indexOf("t") + 1;
+
+            // console.log("M#", manNumber);
+            // console.log("MN", manifestName);
+            // console.log(manifestName.substr(manNumber));
+            // console.log("N#", (parseInt(manifestName.charAt(manNumber)) + 1).toString());
+
+            let nextManifest = manifestName.substr(0, manNumber) + (parseInt(manifestName.charAt(manNumber)) + 1).toString();
+            // debug
+            // console.log("NM", nextManifest);
+
+            /** @description
+             * isolate the manifest name line that a label is being added to
+             * isolate it by taking out the list before and after that line
+             * modify the line then concatenate everything back together
+             */
+            let content1 = content.substr(0, content.indexOf(manifestName));
+            let content2 = content.substr(content.indexOf(nextManifest));
+            let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
+            substringManifest += " " + labelName + "\n";
+            if (content.indexOf(nextManifest) == -1 || manifest_num == parseInt(manifestName.charAt(manNumber))) {
+                //content2 = content.substr(content.lastIndexOf(" "))
+                content2 = "";
+                substringManifest = content.substr(content.indexOf(manifestName));
+
+                substringManifest += " " + labelName;
+            }
+            content = content1 + substringManifest + content2;
+            // replaces content in the original file with the modifications
+            fs.writeFile(labeltxt, content, 'utf8', function(err) {
+                if (err) return console.log(err);
+            });
+
+            
+            // debug
+            // console.log(content1);
+            // console.log(content2);
+            // console.log(content.indexOf(nextManifest))
+            // console.log(content);
+
+        } else {
+            fs.appendFileSync(labeltxt, "\n" + manifestName + " - " + labelName);
+        }
+    });
+}
 
 /**
  * Listing
@@ -138,7 +250,7 @@ app.get(
 );
 
 /**
- * Listing
+ * Check Out
  */
 app.get(
     '/get_checkOut_text',   // locates the check out button in the HTML file
@@ -191,6 +303,239 @@ app.get(
 )
 
 /**
+ * Reads the manifest file and separates files between the "@" symbol
+ * Left of the "@" symbol is the artifact ID, the original file name is derived from this
+ * Right of the "@" symbol is the original source path directory path
+ * Attach the root the user wants to copy files back into to the front fo this source path
+ * By doing so the file path names resume to the original versions and the contents
+ * can be copied over
+ * Source (maniPath) is the repo manifest file, includes the manifest file at the end of path
+ * Target (targetPath) is the user defined check out directory, where the files are going
+ * @param {string} maniPath - repository directory
+ * @param {string} targetPath - check out directory
+ */
+function checkout(maniPath, targetPath) {
+    var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
+    
+    // debug
+    // console.log(manifestFile);
+    // console.log(repoPath);
+
+    // reads the manifest file and distributes the files to checkout directory
+    fs.readFile(maniPath, 'utf8', (err, content) => {
+        if (err) { console.log(err); return err; }
+
+        let filenms = content.substr(content.lastIndexOf(":") + 1);
+        let arr = filenms.split("\n");
+        // debug
+        // console.log(filenms);
+        // console.log("split stuff: " + arr);
+
+        for (let i = 1; i < arr.length - 1; i++) {
+            // debug
+            // console.log(i + ". " + arr[i]);
+
+            let artnm = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
+            let subs = arr[i].substr(arr[i].indexOf("@") + 2); // the subdirectory 
+
+            // SLASH CHECK CODE
+            var slashCheck = subs.indexOf('/')
+            if (slashCheck < 0) {
+                subseg = subs.split('\\');
+                subs = subseg.join("/"); //changed \\ to /
+            } else {
+                subseg = subs.split('/');
+                subs = subseg.join("/");
+            }
+
+            let filenam = artnm.substr(artnm.lastIndexOf("-") + 1); // the original file name
+            let direc = targetPath + subs; // the full directory of where things should go 
+            // debug
+            // console.log("artnm: " + artnm);
+            // console.log("subs: " + subs);
+            // console.log("normal filename: " + filenam);
+            // console.log("the full path: " + direc); 
+            // console.log("\n");
+
+            direc = targetPath;
+            console.log(subseg)
+            subseg.forEach(item => {
+                console.log(item);
+                direc = path.join(direc, item);
+                // debug
+                // console.log("DIR", direc);
+
+                // creates a new directory if it does not exist
+                if (!fs.existsSync(direc))
+                    fs.mkdirSync(direc);
+            });
+
+            // debug
+            // console.log("\nmani path:", maniPath);
+            // console.log("repo path:", repoPath);
+            // console.log("manifest file:", manifestFile);
+
+            let originalFile = path.join(repoPath, artnm); // repoPath + '/' + artnm;
+            let checkoutDirec = path.join(direc, filenam); // direc + '/' + filenam;
+            
+            // debug
+            // console.log("TM", tempName);
+            // console.log("checkout Directory: ", checkoutDirec);
+            // console.log("original File", originalFile);
+            // console.log("\n");
+
+            // copies over contents to the checkout directory
+            fs.copyFile(originalFile, checkoutDirec, fs.constants.COPYFILE_FICLONE, function(err) {
+                if (err) { console.log(err); }
+                // debug
+                // console.log("after copied:", tempName);
+            });
+        }
+    });
+}
+
+/**
+ * Searches for the last index of a slash mark
+ * Works for Windows "\\" or Mac "/" systems
+ * Returns the integer index
+ * @param {string} pathForIndex - path name that needs to be indexed for the last slash mark in it
+ * @returns {int} slashMarker - index of the last slash mark in the path name
+ */
+function last_slash_mark(pathForIndex) {
+    let slashMarker = pathForIndex.lastIndexOf('/')
+    if (slashMarker < 0) {
+        slashMarker = pathForIndex.lastIndexOf('\\');
+    }
+    return slashMarker;
+}
+
+/**
+ * Recursive function that transfers all files in source directory to target directory
+ * Generates an artifact ID if the file path is a file
+ * However, if the file path is a directory then run transfer_files() on it
+ * @param {string} filePath - path name of a file, is a directory if one is encountered in the source directory
+ * @param {string} targetPath - path for target directory, repository directory
+ * @param {string} ogsourcePath - path for the original root path directory, remains the same for every recursion
+ */
+function transfer_files(filePath, targetPath, ogsourcePath) {
+    let filenames = fs.readdirSync(filePath);
+    for (let i = 0; i < filenames.length; ++i) {
+        // removes dot files from list, but
+        // prevents manifest dot files from being deleted
+        if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) {
+            fs.unlinkSync(path.join(filePath, filenames[i]));
+            filenames.splice(i, 1);
+
+            // debug
+            console.log("Removing - " + filenames[i]);
+            // console.log(fs.readFileSync(filenames[i], 'utf8'));
+        }
+    }
+    filenames.forEach(file => {
+        let temp = filePath; // original file path is retained with the temp variable
+        filePath = path.join(filePath, file); // change filePath to base
+        // debug
+        // console.log('File Path:', filePath)
+
+        // if the file path is a file then generate its artifact ID
+        // else the file path must be a directory t/f call transfer_files() on it
+        if (fse.lstatSync(filePath).isFile()) {
+            var content = fs.readFileSync(filePath, 'utf8');
+            artID(filePath, content, targetPath, file, ogsourcePath);
+            filePath = temp;
+        } else {
+            transfer_files(filePath, targetPath, ogsourcePath);
+            filePath = temp;
+        }
+    });
+}
+
+/**
+ * Generates the Artifact ID for the file passed in
+ * @module Artifact ID structure:
+ * - Part A - hexadecimal calculation for the source path characters
+ * - Part B - hexadecimal length of the file
+ * - Part C - hexadecimal calculation for the contents characters in the file
+ * @param {string} filePath - file that needs an artifact ID generated
+ * @param {string} content - content in the file
+ * @param {string} targetPath - target directory, where the file will be copied/moved to
+ * @param {string} file - file name
+ * @param {string} ogsourcePath - original source path directory
+ */
+function artID(filePath, content, targetPath, file, ogsourcePath) {
+    var hashOffset = 4; // four patterned calculations
+    var r = 0; // remainder
+    var hexTotal = 0; // hexadecimal calculation
+
+    // debug
+    // console.log("FilePath:", filePath);
+
+    for (let iter = 0; iter < content.length; ++iter) {
+        r = iter % hashOffset;
+        if (r == 0) {
+            hexTotal += content.charCodeAt(iter) * 3;
+        } else if (r == 1 || r == 3) {
+            hexTotal += content.charCodeAt(iter) * 7;
+        } else if (r == 2) {
+            hexTotal += content.charCodeAt(iter) * 11;
+        }
+    }
+    var pathHex = 0;
+    for (let f = 0; f < filePath.length; ++f) {
+        pathHex += filePath.charCodeAt(f);
+    }
+    var A = pathHex.toString(16);
+    A = A.substr(A.length - 2, A.length); // truncates hex digits
+    var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
+    while (B.length < 4)
+        B = '0' + B;
+    var C = hexTotal.toString(16);
+    while (C.length < 4)
+        C = '0' + C;
+    let artifactName = A + '-' + B + '-' + C + '-' + file;
+    // let name = targetPath + '/' + A + '-' + B + '-' + C + '-' + file;
+    let name = targetPath + '/' + artifactName;
+
+    let tempName = filePath.substr(0, last_slash_mark(filePath)) + '/' + artifactName;
+
+    // debug
+    // console.log("Hex Total:", hexTotal, "C: ", C);
+    // console.log('FP:', filePath);
+    // console.log('TempName:', tempName);
+    // console.log('TP:', targetPath);
+    // console.log('F:', file);
+    // console.log('Name:', name);
+    // if(fs.exists(tempName, (err) => { if(err) { console.log(err); } console.log('TempName Exists...'); }));
+    // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
+    // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
+
+    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
+        if (err) { console.log(err); }
+        // NOTE: causes error if file already exists, should use fs.exists() to check for error
+        fse.move(tempName, name, (err) => { console.log(err); });
+    });
+
+    /* adds to the existing manifest file with artifact ID files */
+    let extralen = filePath.length - ogsourcePath.length - file.length;
+    var sub = filePath.substr(ogsourcePath.length, extralen); //could be length-1 might have to double check on that possible point of error here 
+    let a = targetPath + "/.manifest" + manifest_num + ".txt";
+    
+    // debug
+    // console.log(sub);
+    // console.log(extralen);
+
+    console.log(artifactName + " @ " + sub + "\n");
+    fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
+        if (err) throw err;
+        console.log("added " + file);
+        console.log(artifactName + " @ " + sub);
+    });
+
+    // debug
+    // console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
+}
+
+/**
  * Home page
  */
 app.get(
@@ -211,314 +556,3 @@ app.listen(
         console.log("vcsbridge.js listening on port 3000!");
     }
 );
-
-/**
- * Appends a label name to the .labels.txt file.
- * @param targetPath - includes the target directory and the manifest file being labeled
- * @param labelName - the label name provided
- */
-function append_label(targetPath, labelName) {
-    console.log("RUNNING labelFile");
-    // let labeltxt = targetPath + '/.labels.txt'
-
-    // this is for mac or windows users 
-    let slashMarker = targetPath.lastIndexOf('/')
-    if (slashMarker < 0) {
-        slashMarker = targetPath.lastIndexOf('\\');
-    }
-    let manifestFile = targetPath.substr(slashMarker + 1);
-    targetPath = targetPath.substr(0, slashMarker);
-    console.log(manifestFile);
-
-    dotMarker = manifestFile.lastIndexOf('.') - 1;
-    let manifestName = manifestFile.substr(1, dotMarker);
-    let labeltxt = targetPath.replace(targetPath, targetPath + '/.labels.txt');
-    console.log("MN", manifestName)
-        // list labels
-        // fs.appendFileSync(labeltxt, manifestName + " - " + labelName);
-
-    // inline labels
-    fs.readFile(labeltxt, 'utf8', (err, content) => {
-        if (err) { console.log(err); return err; }
-
-        if (content.includes(manifestName)) {
-
-            // let lastMark = content.lastIndexOf("|");
-            let manNumber = manifestName.indexOf("t") + 1;
-
-            // console.log("M#", manNumber);
-            // console.log("MN", manifestName);
-            // console.log(manifestName.substr(manNumber));
-            // console.log("N#", (parseInt(manifestName.charAt(manNumber)) + 1).toString());
-
-            let nextManifest = manifestName.substr(0, manNumber) + (parseInt(manifestName.charAt(manNumber)) + 1).toString();
-
-            console.log("NM", nextManifest);
-            let content1 = content.substr(0, content.indexOf(manifestName));
-            let content2 = content.substr(content.indexOf(nextManifest));
-            let substringManifest = content.substr(content.indexOf(manifestName), content.indexOf(nextManifest) - 1);
-            substringManifest += " " + labelName + "\n";
-            if (content.indexOf(nextManifest) == -1 || manifest_num == parseInt(manifestName.charAt(manNumber))) {
-                //content2 = content.substr(content.lastIndexOf(" "))
-                content2 = "";
-                substringManifest = content.substr(content.indexOf(manifestName));
-
-                substringManifest += " " + labelName;
-            }
-
-            // console.log(content2);
-            // console.log(content.indexOf(nextManifest))
-
-            content = content1 + substringManifest + content2;
-
-            console.log(content);
-
-            fs.writeFile(labeltxt, content, 'utf8', function(err) {
-                if (err) return console.log(err);
-            });
-            //stuff i wrote ended 
-            // fs.writeFile(labeltxt,  + " " + labelName + " |", 'utf8', (err) => {
-            //     if(err) { console.log(err); return err; }
-            // });
-        } else {
-            fs.appendFileSync(labeltxt, "\n" + manifestName + " - " + labelName);
-        }
-    });
-}
-
-// function build_manifest(sourcePath, targetPath, labelName) {
-function build_manifest(sourcePath, targetPath) {
-    let a = targetPath + "/.manifest" + manifest_num + ".txt";
-    var time = new Date(); //toISOString().replace(/T/, ' ').replace(/\..+/, '') + "\n";
-    let year = time.getFullYear();
-    let day = time.getDate();
-    let month = time.getMonth() + 1;
-    let hour = time.getHours();
-    let minutes = time.getMinutes();
-    let seconds = time.getSeconds();
-    let timestamp = year + "-" + day + "-" + month + " " + hour + ":" + minutes + ":" + seconds + "\n";
-
-    let commandLine = "create " + sourcePath + " " + targetPath + "\n";
-    fs.appendFileSync(a, commandLine, function(err) {
-        if (err) throw err;
-
-    });
-    fs.appendFileSync(a, timestamp, function(err) {
-        if (err)
-            throw err;
-        console.log("added timestamp");
-    });
-    fs.appendFileSync(a, "Files added:\n", function(err) {
-        if (err)
-            throw err;
-    })
-}
-
-
-function checkout(maniPath, sourcePath) {
-
-    var slashMarker = maniPath.lastIndexOf('/')
-    if (slashMarker < 0) {
-        slashMarker = maniPath.lastIndexOf('\\');
-    }
-    let manifestFile = maniPath.substr(slashMarker + 1);
-    var repoPath = maniPath.substr(0, slashMarker);
-    // let manifestFile = maniPath.substr(slashMarker + 1);
-    // let repoPath = maniPath.substr(0, slashMarker);
-    // console.log(manifestFile);
-    fs.readFile(maniPath, 'utf8', (err, content) => {
-        if (err) { console.log(err); return err; }
-
-        let filenms = content.substr(content.lastIndexOf(":") + 1);
-        console.log(filenms); //debugging as i code
-
-        /* okay so hte play is that since we read the rest of the manifest files, 
-           we divided it up into 2 substring per line with the division at the '@' 
-           then with the file name(filenam), we use the similar method that james used 
-           to copy/move files (from your artifact id) into the source path or wherever they want to copy it. 
-           the sourcepath subdirectories wil be made using a code like this 
-           let subpath = sourcepath + substring2 **note that sourcepath is unaltered and should remain that way 
-           if subpath doesn't exist then mkdir to make it   ****this is important to check if it does exist already
-           then do the same move method that is in artifact ID 
-           */
-
-        let arr = filenms.split("\n");
-        console.log("split stuff: " + arr); //debugging help
-        for (let i = 1; i < arr.length - 1; i++) {
-            console.log(i + ". " + arr[i]);
-            let artnm = arr[i].substr(0, arr[i].indexOf("@") - 1); //the full artifact id name
-            let subs = arr[i].substr(arr[i].indexOf("@") + 2); //the subdirectory 
-            //the next two line are to replace the \ with the /, i tried other methods, they didn't work 
-
-            var slashCheck = subs.indexOf('/')
-            if (slashCheck < 0) {
-                subseg = subs.split('\\');
-                subs = subseg.join("/"); //changed \\ to /
-            } else {
-                subseg = subs.split('/');
-                subs = subseg.join("/");
-            }
-
-            //subs = subseg.join("/");
-            let filenam = artnm.substr(artnm.lastIndexOf("-") + 1); //the normal file name
-            let direc = sourcePath + subs; //the full directory of where things should go 
-            console.log("artnm: " + artnm);
-            console.log("subs: " + subs);
-            console.log("normal filename: " + filenam);
-            console.log("the full path: " + direc); //you will see the issue here 
-            // console.log("\n");
-
-            direc = sourcePath;
-            console.log(subseg)
-            subseg.forEach(item => {
-                console.log(item);
-                direc = path.join(direc, item);
-                console.log("DIR", direc);
-                if (!fs.existsSync(direc)) //direc has an extra slash at the end
-                    fs.mkdirSync(direc);
-            });
-            //direc = path.join(direc, subseg);
-            console.log("the direc with path.join(): " + direc);
-            console.log("\n");
-
-            // debug
-            console.log("\nmani path:", maniPath);
-            console.log("repo path:", repoPath);
-            console.log("manifest file:", manifestFile);
-            //over here put a similar version of hte copy method that is in hte middle of artid function 
-            let originalFile = path.join(repoPath, artnm); //repoPath + '/' + artnm;
-            let checkoutDirec = path.join(direc, filenam); //direc + '/' + filenam;
-            let tempName = path.join(repoPath.substr(0, slashMarker), filenam); //repoPath.substr(0, slashMarker) + '/' + filenam;
-            console.log("TM", tempName);
-            console.log("checkout Directory: ", checkoutDirec);
-            console.log("original File", originalFile);
-            console.log("\n");
-            fs.copyFile(originalFile, checkoutDirec, fs.constants.COPYFILE_FICLONE, function(err) {
-                if (err) { console.log(err); }
-                console.log("after copied:", tempName);
-                //fse.move(tempName, checkoutDirec, (err) => { console.log(err); });
-            });
-
-        } //nothing should extend past this brace 
-    });
-
-}
-
-
-// function tramsfer_files(filePath, targetPath) {
-function tramsfer_files(filePath, targetPath, ogsourcePath) {
-    let filenames = fs.readdirSync(filePath);
-    for (let i = 0; i < filenames.length; ++i) {
-        // removes dot files from list
-        if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) { // prevents manifest dot files from being deleted
-            console.log("Removing - " + filenames[i]);
-            fs.unlinkSync(path.join(filePath, filenames[i]));
-            // console.log(fs.readFileSync(filenames[i], 'utf8'));
-            filenames.splice(i, 1);
-        }
-    }
-    filenames.forEach(file => {
-        let temp = filePath;
-        filePath = path.join(filePath, file); // change filePath to base
-        // debug
-        // console.log('File Path:', filePath)
-        // var content; // contents inside the file
-        if (fse.lstatSync(filePath).isFile()) {
-            var content = fs.readFileSync(filePath, 'utf8');
-            // artID(filePath, content, targetPath, file);
-            artID(filePath, content, targetPath, file, ogsourcePath);
-            filePath = temp;
-        } else {
-            // tramsfer_files(filePath, targetPath); // recursion for any folders
-            tramsfer_files(filePath, targetPath, ogsourcePath);
-            filePath = temp;
-        }
-    });
-}
-
-/**
- * Artifact ID Generator
- * Generates a filename according to file data passed in through form
- */
-// function artID(filePath, content, targetPath, file) {
-function artID(filePath, content, targetPath, file, ogsourcePath) {
-    var hashOffset = 4;
-    var r = 0; // remainder
-    var hexTotal = 0;
-
-    // debug
-    // console.log("FilePath:", filePath);
-    for (let iter = 0; iter < content.length; ++iter) {
-        // r = iter % hashOffset;
-        r = iter % hashOffset;
-        if (r == 0) {
-            hexTotal += content.charCodeAt(iter) * 3;
-        } else if (r == 1 || r == 3) {
-            hexTotal += content.charCodeAt(iter) * 7;
-        } else if (r == 2) {
-            hexTotal += content.charCodeAt(iter) * 11;
-        }
-    }
-    var pathHex = 0;
-    // does not calculate/truncate for relative path
-    // filePath is not the relative source project tree path
-    for (let f = 0; f < filePath.length; ++f) {
-        pathHex += filePath.charCodeAt(f);
-    }
-    var A = pathHex.toString(16);
-    A = A.substr(A.length - 2, A.length); // truncates hex digits
-    var B = fs.statSync(filePath).size.toString(16); // is size the same as file length?
-    while (B.length < 4)
-        B = '0' + B;
-    var C = hexTotal.toString(16);
-    while (C.length < 4)
-        C = '0' + C;
-    let artifactName = A + '-' + B + '-' + C + '-' + file;
-    // let name = targetPath + '/' + A + '-' + B + '-' + C + '-' + file;
-    let name = targetPath + '/' + artifactName;
-    let slashMarker = filePath.lastIndexOf('/'); //windows require the \\ while the mac requires a / 
-    // let tempName = filePath.substr(0, slashMarker) + '/' + A + '-' + B + '-' + C + '-' + file;
-    if (slashMarker < 0) { //this is for mac or windows users 
-        slashMarker = filePath.lastIndexOf('\\');
-    }
-    let tempName = filePath.substr(0, slashMarker) + '/' + artifactName;
-
-    // debug
-    // console.log("Hex Total:", hexTotal, "C: ", C);
-    console.log('FP:', filePath);
-    console.log('TempName:', tempName);
-    // console.log('TP:', targetPath);
-    // console.log('F:', file);
-    console.log('Name:', name);
-    // if(fs.exists(tempName, (err) => { if(err) { console.log(err); } console.log('TempName Exists...'); }));
-    // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
-    // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
-
-    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
-        if (err) { console.log(err); }
-        // NOTE: causes error if file already exists, should use fs.exists() to check for error
-        fse.move(tempName, name, (err) => { console.log(err); });
-    });
-
-    /********/
-    let extralen = filePath.length - ogsourcePath.length - file.length;
-    var sub = filePath.substr(ogsourcePath.length, extralen); //could be length-1 might have to double check on that possible point of error here 
-    // debug
-    // console.log(sub);
-    // console.log(extralen);
-
-    // adds artifactName to manifest file
-    let a = targetPath + "/.manifest" + manifest_num + ".txt";
-    // debug
-    console.log(artifactName + " @ " + sub + "\n");
-    fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
-        if (err) throw err;
-        console.log("added " + file);
-        console.log(artifactName + " @ " + sub);
-    });
-    /********/
-
-    // debug
-    // console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
-
-}
