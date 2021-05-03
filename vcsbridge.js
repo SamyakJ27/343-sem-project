@@ -21,7 +21,9 @@ app.get(
     '/get_mergeout_text',
     function (req, res) {
         var sourcePath = req.query.source_path;
-        var repoPath = req.query.repo_path;
+        var ManifestPath = req.query.mani_path;  //would this contain the manifest file with it? for hte project tree part to merge with
+
+        var repoPath = ManifestPath.substr(0, last_slash_mark(ManifestPath));
 
         merge_out(sourcePath, repoPath);
     }
@@ -40,6 +42,10 @@ function merge_out(sourcePath, repoPath) {
     merge in will transfer those files in the changes directory into the repo?
     */
     changes_direc = path.join(repoPath, "changes");
+    if (!(fs.existsSync(changes_direc))) {
+        fs.mkdirSync(changes_direc);
+    }
+    build_manifest(sourcePath, changes_direc);
     transfer_files(sourcePath, changes_direc, sourcePath);
 
 }

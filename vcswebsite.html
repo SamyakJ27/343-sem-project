@@ -73,11 +73,11 @@
     <div class="labeling">
         <form action="/get_label_form" method="GET">
             <label for="path"><br>Target Path Directory:<br>
-                  <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                      name="target_path" placeholder="Input target path here" required /><br></label><br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="target_path" placeholder="Input target path here" required /><br></label><br>
             <label for="path"><br>Label Name:<br>
-                  <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                      name="label_name" placeholder="Input label name here" required /><br></label><br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="label_name" placeholder="Input label name here" required /><br></label><br>
             <input class="pill" id="cr" type="submit" value="Labeling" />
         </form>
     </div>
@@ -85,8 +85,8 @@
     <!-- Listing Button -->
     <div class="listing">
         <form action="/get_listing_form" method="GET">
-            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                name="repo_path" placeholder="Input text here" required />
+            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name="repo_path"
+                placeholder="Input text here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" value="Listing" />
         </form>
@@ -100,10 +100,12 @@
                     name="mani_path" placeholder="Input repo path directory here" required /><br></label>
             <label for="path"><br>Checkout Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="target_path" placeholder="Input target path here" required /><br></label>  
+                    name="target_path" placeholder="Input target path here" required /><br></label>
             <label for="path"><br>manifest file name or label name:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="mani_label_name" placeholder="Input manifest file (don't forget the first .) or label name here" required /><br></label>  
+                    name="mani_label_name"
+                    placeholder="Input manifest file (don't forget the first .) or label name here"
+                    required /><br></label>
             <br>
             <input class="pill" id="cr" type="submit" value="Check Out" />
         </form>
@@ -114,10 +116,10 @@
         <form action="/get_mergeout_text" method="GET">
             <label for="path"><br>Source Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="source_path" placeholder="Input source path here" required /><br></label>  
-            <label for="path"><br>Repo Path Directory:<br>
+                    name="source_path" placeholder="Input source path here" required /><br></label>
+            <label for="path"><br>Manifest Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="repo_path" placeholder="Input repo path directory here" required /><br></label>  
+                    name="mani_path" placeholder="Input manifest path directory here" required /><br></label>
             <br>
             <input class="pill" id="cr" type="submit" value="Merge Out" />
         </form>
