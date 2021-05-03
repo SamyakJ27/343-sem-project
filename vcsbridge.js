@@ -84,32 +84,54 @@ function merge_out(sourcePath, maniPath) {
     });
 
     // source artifact IDs
-    var sourceIDs = []; // NOTE: readdirSync() reads all the filenames and puts into array
-    fs.readFileSync(maniPath, 'utf8', (err, content) => {
-        if (err) { console.log(err); }
-
-        let filenms = content.substr(content.lastIndexOf(":") + 1);
-        let arr = filenms.split("\n");
-        // debug
-        // console.log(filenms);
-        // console.log("split stuff: " + arr);
-
-        for (let i = 1; i < arr.length - 1; i++) {
-            // debug
-            // console.log(i + ". " + arr[i]);
-
-            let sID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
-            sourceIDs.add(tID);
-        }
+    var sourceIDs = fs.readdirSync(repoPath + "/changes", 'utf8', (err) => {
+        if(err) { console.log(err); }
     });
 
+    // debug
+    console.log(sourceIDs);
+    
+    // NOTE: readdirSync() reads all the filenames and puts into array
+    // fs.readFileSync(maniPath, 'utf8', (err, content) => {
+    //     if (err) { console.log(err); }
+
+    //     let filenms = content.substr(content.lastIndexOf(":") + 1);
+    //     let arr = filenms.split("\n");
+    //     // debug
+    //     // console.log(filenms);
+    //     // console.log("split stuff: " + arr);
+
+    //     for (let i = 1; i < arr.length - 1; i++) {
+    //         // debug
+    //         // console.log(i + ". " + arr[i]);
+
+    //         let sID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
+    //         sourceIDs.add(tID);
+    //     }
+    // });
+
     // compare the sourceIDs with the targetIDs
-    for (let sources of targetIDs) {
-        if (!sourceIDs.includes(sources)) {
-            fs.copyFile(repoPath + sources, changes_direc + sources, fs.constants.COPYFILE_FICLONE, function (err) {
+    for (let tID of targetIDs) {
+        tIDPath = tID.substr(0, tID.indexOf("-"));
+        tIDName = tID.substr(tID.lastIndexOf("-") + 1, tID.lastIndexOf("."));
+
+        // Case 1 and Case 2
+        if (!sourceIDs.includes(tID)) {
+            // copies excluded files from target into the source's changes folder
+            fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID), fs.constants.COPYFILE_FICLONE, function (err) {
                 if (err) { console.log(err); }
 
-            }) //need to put some more stuff here
+            }); //need to put some more stuff here
+        }
+        // Case 3
+        else if(sourceIDs.includes(tID)) {
+            fse.move(path.join(repoPath, tID), path.join(changes_direc, tID), function (err) {
+                if (err) { console.log(err); }
+
+            });
+        }
+        else if(sourceIDs.includes(tIDPath) && sourceIDs.includes(tIDName)) {
+            
         }
     }
 
