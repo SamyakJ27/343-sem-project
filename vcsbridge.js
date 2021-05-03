@@ -18,16 +18,15 @@ app.use(express.static('./'));
 var manifest_num = 0;
 
 app.get(
-    '/get_mergeout_text',
+    '/get_mergeout_text', // locates the merge out button in the HTML file
     function (req, res) {
+        // Text box information
         var sourcePath = req.query.source_path;
-        var ManifestPath = req.query.mani_path;  //would this contain the manifest file with it? for hte project tree part to merge with
+        var maniPath = req.query.mani_path;  //would this contain the manifest file with it? for hte project tree part to merge with
 
-        var repoPath = ManifestPath.substr(0, last_slash_mark(ManifestPath));
+        // var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
 
-        var manifestname = ManifestPath.substr(last_slash_mark(ManifestPath) + 1);
-
-        merge_out(sourcePath, repoPath, manifestname);
+        merge_out(sourcePath, maniPath);
     }
 );
 
@@ -36,13 +35,15 @@ app.get(
  * @param {string} sourcePath 
  * @param {string} repoPath 
  */
-function merge_out(sourcePath, repoPath, manifestname) {
+function merge_out(sourcePath, maniPath) {
     /* 
     merge out is only part 1 of the merge process
     so maybe want to transfer the files over to the repo in a changes directory
     then user can manually do the merge there and
     merge in will transfer those files in the changes directory into the repo?
     */
+    var manifestname = maniPath.substr(last_slash_mark(maniPath) + 1);
+
     changes_direc = path.join(repoPath, "changes");
     if (!(fs.existsSync(changes_direc))) {
         fs.mkdirSync(changes_direc);
@@ -61,13 +62,54 @@ function merge_out(sourcePath, repoPath, manifestname) {
     //then go through the names and see which files can stay and which one need to go 
 
 
+    // target artifact IDs
+    var targetIDs = [];
+    fs.readFileSync(maniPath, 'utf8', (err, content) => {
+        if(err) { console.log(err); }
 
+        let filenms = content.substr(content.lastIndexOf(":") + 1);
+        let arr = filenms.split("\n");
+        // debug
+        // console.log(filenms);
+        // console.log("split stuff: " + arr);
+
+        for (let i = 1; i < arr.length - 1; i++) {
+            // debug
+            // console.log(i + ". " + arr[i]);
+
+            let tID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
+            targetIDs.add(tID);
+        }
+    });
+
+    // source artifact IDs
+    var sourceIDs = []; // NOTE: readdirSync() reads all the filenames and puts into array
+    fs.readFileSync(maniPath, 'utf8', (err, content) => {
+        if(err) { console.log(err); }
+
+        let filenms = content.substr(content.lastIndexOf(":") + 1);
+        let arr = filenms.split("\n");
+        // debug
+        // console.log(filenms);
+        // console.log("split stuff: " + arr);
+
+        for (let i = 1; i < arr.length - 1; i++) {
+            // debug
+            // console.log(i + ". " + arr[i]);
+
+            let sID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
+            sourceIDs.add(tID);
+        }
+    });
+
+    // compare the sourceIDs with the targetIDs
 
 }
 
 app.get(
-    '/get_mergein_text',
+    '/get_mergein_text', // locates the merge in button in the HTML file
     function (req, res) {
+        // Text box information
         var repoPath = req.query.repo_path;
         var targetPath = req.query.target_path;
 
