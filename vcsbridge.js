@@ -50,8 +50,13 @@ function merge_out(sourcePath, maniPath) {
         fs.mkdirSync(changes_direc);
     }
 
-    let p = sourcePath + "/.sourcebranch.txt";
-    var sourceBranch = fs.readFileSync(p, 'utf8', (err) => {
+    let sb = sourcePath + "/.sourcebranch.txt";
+    var sourceBranch = fs.readFileSync(sb, 'utf8', (err) => {
+        if (err) { console.log(err); return err; }
+    });
+
+    let rb = repoPath + "/.branches.txt";
+    var repoBranches = fs.readFileSync(rb, 'utf8', (err) => {
         if (err) { console.log(err); return err; }
     });
 
@@ -115,8 +120,23 @@ function merge_out(sourcePath, maniPath) {
         tIDPath = tID.substr(0, tID.indexOf("-"));
         tIDName = tID.substr(tID.lastIndexOf("-") + 1, tID.lastIndexOf("."));
 
+        if(sourceIDs.includes(tIDPath) && sourceIDs.includes(tIDName)) {
+            let sID = sourceIDs[sourceIDs.indexOf(tIDName)];
+            tID_MT = tID.substr(0, tID.lastIndexOf(".")) + "_MT" + tID.substr(tID.lastIndexOf("."));
+            sID_MR = sID.substr(0, tID.lastIndexOf(".")) + "_MR" + tID.substr(tID.lastIndexOf("."));
+
+            fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID), fs.constants.COPYFILE_FICLONE, function (err) {
+                if (err) { console.log(err); }
+            });
+
+            find_grandma(sourceBranch, repoBranches);
+
+            fs.renameSync(path.join(changes_direc, tID), path.join(changes_direc, tID_MT), (err) => {
+                if (err) { console.log(err); }
+            });
+        }
         // Case 1 and Case 2
-        if (!sourceIDs.includes(tID)) {
+        else if (!sourceIDs.includes(tID)) {
             // copies excluded files from target into the source's changes folder
             fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID), fs.constants.COPYFILE_FICLONE, function (err) {
                 if (err) { console.log(err); }
@@ -130,12 +150,16 @@ function merge_out(sourcePath, maniPath) {
 
             });
         }
-        else if(sourceIDs.includes(tIDPath) && sourceIDs.includes(tIDName)) {
-            
-        }
     }
+}
 
-
+function find_grandma(sourceBranch, repoBranches) {
+    // use the sourcebranch and branches files to find the last matching manifest
+    // parameters will need to be the source project tree and the target branches according to the manifest
+    
+    // for loop the sourcebranch then see which repo branch matches
+    // go to next line in repobranches if a manifest does not match
+    // keep comparing until the end of the file
 }
 
 app.get(
