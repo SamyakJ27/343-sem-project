@@ -106,7 +106,10 @@ function merge_out(sourcePath, maniPath) {
     // compare the sourceIDs with the targetIDs
     for (let sources of targetIDs) {
         if (!sourceIDs.includes(sources)) {
-            fs.copyFile(repoPath + sources, changes_direc + sources) //need to put some more stuff here
+            fs.copyFile(repoPath + sources, changes_direc + sources, fs.constants.COPYFILE_FICLONE, function (err) {
+                if (err) { console.log(err); }
+
+            }) //need to put some more stuff here
         }
     }
 
