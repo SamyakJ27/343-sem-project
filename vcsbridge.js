@@ -25,7 +25,9 @@ app.get(
 
         var repoPath = ManifestPath.substr(0, last_slash_mark(ManifestPath));
 
-        merge_out(sourcePath, repoPath);
+        var manifestname = ManifestPath.substr(last_slash_mark(ManifestPath) + 1);
+
+        merge_out(sourcePath, repoPath, manifestname);
     }
 );
 
@@ -34,7 +36,7 @@ app.get(
  * @param {string} sourcePath 
  * @param {string} repoPath 
  */
-function merge_out(sourcePath, repoPath) {
+function merge_out(sourcePath, repoPath, manifestname) {
     /* 
     merge out is only part 1 of the merge process
     so maybe want to transfer the files over to the repo in a changes directory
@@ -45,8 +47,21 @@ function merge_out(sourcePath, repoPath) {
     if (!(fs.existsSync(changes_direc))) {
         fs.mkdirSync(changes_direc);
     }
+
+    let p = sourcePath + "/.sourcebranch.txt";
+    var sourceBranch = fs.readFileSync(p, 'utf8', (err) => {
+        if (err) { console.log(err); return err; }
+    });
+
     build_manifest(sourcePath, changes_direc);
     transfer_files(sourcePath, changes_direc, sourcePath);
+
+    //calculate the grandma manifest and include that as well
+    //read artifact id from given manifest file and compare with the manifest file generated above 
+    //then go through the names and see which files can stay and which one need to go 
+
+
+
 
 }
 
