@@ -43,6 +43,7 @@ function merge_out(sourcePath, maniPath) {
     merge in will transfer those files in the changes directory into the repo?
     */
     var manifestname = maniPath.substr(last_slash_mark(maniPath) + 1);
+    var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
 
     changes_direc = path.join(repoPath, "changes");
     if (!(fs.existsSync(changes_direc))) {
@@ -65,7 +66,7 @@ function merge_out(sourcePath, maniPath) {
     // target artifact IDs
     var targetIDs = [];
     fs.readFileSync(maniPath, 'utf8', (err, content) => {
-        if(err) { console.log(err); }
+        if (err) { console.log(err); }
 
         let filenms = content.substr(content.lastIndexOf(":") + 1);
         let arr = filenms.split("\n");
@@ -85,7 +86,7 @@ function merge_out(sourcePath, maniPath) {
     // source artifact IDs
     var sourceIDs = []; // NOTE: readdirSync() reads all the filenames and puts into array
     fs.readFileSync(maniPath, 'utf8', (err, content) => {
-        if(err) { console.log(err); }
+        if (err) { console.log(err); }
 
         let filenms = content.substr(content.lastIndexOf(":") + 1);
         let arr = filenms.split("\n");
@@ -103,6 +104,12 @@ function merge_out(sourcePath, maniPath) {
     });
 
     // compare the sourceIDs with the targetIDs
+    for (let sources of targetIDs) {
+        if (!sourceIDs.includes(sources)) {
+            fs.copyFile(repoPath + sources, changes_direc + sources) //need to put some more stuff here
+        }
+    }
+
 
 }
 
