@@ -19,7 +19,7 @@ var manifest_num = 0;
 
 app.get(
     '/get_mergeout_text',
-    function(req,res) {
+    function (req, res) {
         var sourcePath = req.query.source_path;
         var repoPath = req.query.repo_path;
 
@@ -46,7 +46,7 @@ function merge_out(sourcePath, repoPath) {
 
 app.get(
     '/get_mergein_text',
-    function(req,res) {
+    function (req, res) {
         var repoPath = req.query.repo_path;
         var targetPath = req.query.target_path;
 
@@ -70,12 +70,12 @@ app.get(
     '/get_repo_form',   // locates the create repo button in the HTML file
     // req - request
     // res - result
-    function(req, res) {
+    function (req, res) {
         // Text box information
         var repoName = req.query.repo_name; // ! something
         var sourcePath = req.query.source_path; // ! C:/Users/rifat/Desktop/source
         var targetPath = req.query.target_path + '/' + repoName; // ! C:/Users/rifat/Desktop/CSULB-2021-Spring/target
-        
+
         // debug
         console.log('Repo Name recieved: ' + repoName);
         console.log('Source Path recieved: ' + sourcePath);
@@ -94,6 +94,12 @@ app.get(
         let l = targetPath + "/.labels.txt";   // adds new dot file in repo
         fs.appendFile(l, "manifest" + manifest_num + " - ", (err) => { console.log(err); });   // writes initial manifest label
 
+        let c = targetPath + "/.branches.txt";   // adds new dot file in repo
+        fs.appendFile(c, "manifest" + manifest_num + ", ", (err) => { console.log(err); });   // writes main branch parent/child replationship
+
+        let p = sourcePath + "/.sourcebranch.txt";
+        fs.appendFile(p, "manifest" + manifest_num + ", ", (err) => { console.log(err); });  // writes same parent/child in source folder
+
         res.send('You can find ' + repoName + ' repo at ' + targetPath);
 
         // ! for filename switch slashes to '/' not '\'
@@ -106,11 +112,25 @@ app.get(
  */
 app.get(
     '/get_checkin_form',   // locates the check in button in the HTML file
-    function(req, res) {
+    function (req, res) {
         // Text box information
         // var labelName = req.query.label_name;   // no frills, used to label manifest upon check in
         var sourcePath = req.query.source_path;
         var targetPath = req.query.target_path;
+
+        let p = sourcePath + "/.sourcebranch.txt";
+        //reading the path of the branch
+        let path = fs.readFileSync(p, 'utf8', (err) => {
+            if (err) { console.log(err); return err; }
+        })
+
+        // fs.readFileSync(p, 'utf8', (err, content) => {
+        //     if (err) { console.log(err); return err; }
+
+        //     path += content;
+        // });
+
+        console.log("the path inside the sourcebranch: " + path + "space check");
 
         // checks if the given target directory path exists
         // sends error message if it does not exist
@@ -123,8 +143,71 @@ app.get(
             transfer_files(sourcePath, targetPath, sourcePath);
 
             // Appends to the already existing label file with the updated manifest file and manifest number
-            let l = targetPath + "/.labels.txt"
+            let l = targetPath + "/.labels.txt";
             fs.appendFile(l, "\nmanifest" + manifest_num + " - ", (err) => { console.log(err); });
+
+
+            console.log("the path inside the sourcebranch: " + path);
+            //finding the path of this branch and updating it 
+            let b = targetPath + "/.branches.txt";
+            // let firsthalf = "";
+            // let lasthalf = "";
+            // let pathline = "";
+            let content = fs.readFileSync(b, 'utf8', (err) => {
+                if (err) { console.log(err); return err; }
+            });
+
+            let lines = content.split("\n");
+            let index = 0;
+
+            //console.log("the lines: " + lines);
+
+            for (let line of lines) {
+                if (line == path) {
+                    break;
+                }
+                console.log("a line: " + line + "space check");
+                index += line.length + 1;
+            }
+            console.log("index: " + index);
+
+            let firsthalf = content.substr(0, index);
+            let lasthalf = content.substr(firsthalf.length + path.length);
+            let pathline = content.substr(content.indexOf(path), path.length);
+
+            console.log("og pathline: " + pathline);
+            console.log("firsthalf: " + firsthalf);
+            console.log("lsatpart: " + lasthalf);
+
+            pathline += "manifest" + manifest_num + ", ";
+
+            console.log("pathline after adding next manifest: " + pathline);
+
+            // fs.readFileSync(b, 'utf8', (err, content) => {
+            //     if (err) { console.log(err); return err; }
+
+            //     let firsthalf = content.substr(0, content.indexOf(path));
+            //     let lasthalf = content.substr(firsthalf.length + path.length);
+            //     let pathline = content.substr(content.indexOf(path), path.length);
+
+            //     console.log("og pathline: " + pathline);
+            //     console.log("firsthalf: " + firsthalf);
+            //     console.log("lsatpart: " + lasthalf);
+
+
+            //     pathline += "manifest" + manifest_num + ", ";
+
+            //     console.log("pathline after adding next manifest: " + pathline);
+            // });
+
+            fs.writeFile(p, pathline, 'utf8', function (err) {
+                if (err) { console.log(err); return err; }
+            });
+
+            fs.writeFile(b, firsthalf + pathline + lasthalf, 'utf8', function (err) {
+                if (err) { console.log(err); return err; }
+            });
+
             res.send('You can find your changes at ' + targetPath);
         }
     }
@@ -149,16 +232,16 @@ function build_manifest(sourcePath, targetPath) {
 
     // Information that is written in header of manifest file
     let commandLine = "create " + sourcePath + " " + targetPath + "\n";
-    fs.appendFileSync(a, commandLine, function(err) {
+    fs.appendFileSync(a, commandLine, function (err) {
         if (err) throw err;
     });
-    fs.appendFileSync(a, timestamp, function(err) {
+    fs.appendFileSync(a, timestamp, function (err) {
         if (err)
             throw err;
         // debug
         // console.log("added timestamp");
     });
-    fs.appendFileSync(a, "Files added:\n", function(err) {
+    fs.appendFileSync(a, "Files added:\n", function (err) {
         if (err)
             throw err;
     })
@@ -169,7 +252,7 @@ function build_manifest(sourcePath, targetPath) {
  */
 app.get(
     '/get_label_form',   // locates the label button in the HTML file
-    function(req, res) {
+    function (req, res) {
         // Text box information
         // var manifestName = req.query.mani_name;   // no frills
         var targetPath = req.query.target_path; // includes manifest file name
@@ -244,11 +327,11 @@ function append_label(targetPath, labelName) {
             }
             content = content1 + substringManifest + content2;
             // replaces content in the original file with the modifications
-            fs.writeFile(labeltxt, content, 'utf8', function(err) {
+            fs.writeFile(labeltxt, content, 'utf8', function (err) {
                 if (err) return console.log(err);
             });
 
-            
+
             // debug
             // console.log(content1);
             // console.log(content2);
@@ -266,7 +349,7 @@ function append_label(targetPath, labelName) {
  */
 app.get(
     '/get_listing_form',   // locates the label button in the HTML file
-    function(req, res) {
+    function (req, res) {
         // debug
         // console.log("RUNNING listing_form");
 
@@ -300,15 +383,18 @@ app.get(
  */
 app.get(
     '/get_checkOut_text',   // locates the check out button in the HTML file
-    function(req, res) {
+    function (req, res) {
         // debug
         // console.log("Running Checkout_form!!!");
 
         // Text box information
         var maniPath = req.query.mani_path;
-        var sourcePath = req.query.target_path;
+        var targetPath = req.query.target_path;
         var maniname = req.query.mani_label_name;
-        
+
+        let manNum = "";
+        let branchpath = maniPath + "/.branches.txt";
+
         // debug
         // console.log(maniPath);
         // console.log(sourcePath);
@@ -319,7 +405,8 @@ app.get(
         // else determine which is manifest file name with the label name provided
         if (maniname.includes("manifest")) {
             maniPath = path.join(maniPath, maniname);
-            checkout(maniPath, sourcePath);
+            checkout(maniPath, targetPath);
+            manNum += maniname.substr(1, maniname.lastIndexOf(".") - 1);
         } else {
             let labelpath = maniPath + "/.labels.txt";
             fs.readFile(labelpath, 'utf8', (err, content) => {
@@ -337,14 +424,49 @@ app.get(
                         let manifestnum = "." + line.substr(0, 9) + ".txt";
                         console.log("manifestname from line:", manifestnum);
                         maniPath = path.join(maniPath, manifestnum);
-                        checkout(maniPath, sourcePath);
+                        checkout(maniPath, targetPath);
+                        manNum += manifestnum.substr(1, manifestnum.lastIndexOf('.') - 1);
                     }
                 });
 
             });
         }
 
-        res.send('You can find ' + maniname + ' files at ' + sourcePath);
+        console.log("ManNum in checkout: " + manNum);
+
+        let p = targetPath + "/.sourcebranch.txt";
+        fs.readFile(branchpath, 'utf8', (err, content) => {
+            if (err) { console.log(err); return err; }
+
+            let paths = content.split("\n");
+
+            console.log("each line before: " + paths);
+
+            for (let line of paths) {
+                if (line.includes(manNum)) {
+                    let index = line.indexOf(manNum);
+                    let path = line.substr(0, index + 11);
+                    console.log("path: " + path + "space check");
+                    fs.writeFile(p, path, (err) => { console.log(err); });  // writes same parent/child in source folder
+                    fs.appendFile(branchpath, "\n" + path, (err) => { console.log(err); })
+                    break;
+                }
+            }
+
+            // paths.forEach(line => {
+            //     if (line.includes(manNum)) {
+            //         let index = line.indexOf(manNum);
+            //         let path = line.substr(0, index + 10);
+            //         fs.appendFile(p, path + ", ", (err) => { console.log(err); });  // writes same parent/child in source folder
+            //         fs.appendFile(branchpath, "\n" + path, (err) => { console.log(err); })
+            //         break;
+            //     }
+            // });
+        });
+
+        //fs.appendFile(p, "manifest" + manifest_num+ ", ", (err) => {console.log(err); });  // writes same parent/child in source folder
+
+        res.send('You can find ' + maniname + ' files at ' + targetPath);
     }
 )
 
@@ -362,7 +484,7 @@ app.get(
  */
 function checkout(maniPath, targetPath) {
     var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
-    
+
     // debug
     // console.log(manifestFile);
     // console.log(repoPath);
@@ -423,7 +545,7 @@ function checkout(maniPath, targetPath) {
 
             let originalFile = path.join(repoPath, artnm); // repoPath + '/' + artnm;
             let checkoutDirec = path.join(direc, filenam); // direc + '/' + filenam;
-            
+
             // debug
             // console.log("TM", tempName);
             // console.log("checkout Directory: ", checkoutDirec);
@@ -431,7 +553,7 @@ function checkout(maniPath, targetPath) {
             // console.log("\n");
 
             // copies over contents to the checkout directory
-            fs.copyFile(originalFile, checkoutDirec, fs.constants.COPYFILE_FICLONE, function(err) {
+            fs.copyFile(originalFile, checkoutDirec, fs.constants.COPYFILE_FICLONE, function (err) {
                 if (err) { console.log(err); }
                 // debug
                 // console.log("after copied:", tempName);
@@ -555,7 +677,7 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
     // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
 
-    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function(err) {
+    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
         if (err) { console.log(err); }
         // NOTE: causes error if file already exists, should use fs.exists() to check for error
         fse.move(tempName, name, (err) => { console.log(err); });
@@ -565,13 +687,13 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     let extralen = filePath.length - ogsourcePath.length - file.length;
     var sub = filePath.substr(ogsourcePath.length, extralen); //could be length-1 might have to double check on that possible point of error here 
     let a = targetPath + "/.manifest" + manifest_num + ".txt";
-    
+
     // debug
     // console.log(sub);
     // console.log(extralen);
 
     console.log(artifactName + " @ " + sub + "\n");
-    fs.appendFile(a, artifactName + " @ " + sub + "\n", function(err) {
+    fs.appendFile(a, artifactName + " @ " + sub + "\n", function (err) {
         if (err) throw err;
         console.log("added " + file);
         console.log(artifactName + " @ " + sub);
@@ -586,7 +708,7 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
  */
 app.get(
     '/',
-    function(req, res) {
+    function (req, res) {
         res.sendFile(
             './vcswebsite.html', { root: __dirname }
         );
@@ -598,7 +720,7 @@ app.get(
  */
 app.listen(
     3000,
-    function() {
+    function () {
         console.log("vcsbridge.js listening on port 3000!");
     }
 );
