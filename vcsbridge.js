@@ -62,6 +62,8 @@ function merge_out(sourcePath, maniPath) {
 
     build_manifest(sourcePath, changes_direc);
     transfer_files(sourcePath, changes_direc, sourcePath);
+    // debug
+    console.log("Transfer complete\n\n");
 
     //calculate the grandma manifest and include that as well
     //read artifact id from given manifest file and compare with the manifest file generated above 
@@ -81,7 +83,7 @@ function merge_out(sourcePath, maniPath) {
 
         for (let i = 1; i < arr.length - 1; i++) {
             // debug
-            // console.log(i + ". " + arr[i]);
+            console.log(i + ". " + arr[i]);
 
             let tID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
             targetIDs.add(tID);
@@ -94,7 +96,8 @@ function merge_out(sourcePath, maniPath) {
     });
 
     // debug
-    console.log(sourceIDs);
+    console.log("Source IDs: " + sourceIDs + "\n\n");
+    console.log("Target IDs: " + targetIDs + "\n\n");
 
     // NOTE: readdirSync() reads all the filenames and puts into array
     // fs.readFileSync(maniPath, 'utf8', (err, content) => {
@@ -119,7 +122,7 @@ function merge_out(sourcePath, maniPath) {
     for (let tID of targetIDs) {
         tIDPath = tID.substr(0, tID.indexOf("-"));
         tIDName = tID.substr(tID.lastIndexOf("-") + 1, tID.lastIndexOf("."));
-        let case4fail = true;
+        // let case4fail = true;
 
         //case 4 is checked first because of its complexity 
         for (let sID of sourceIDs) {
@@ -128,6 +131,7 @@ function merge_out(sourcePath, maniPath) {
                 //let sID = sourceIDs[sourceIDs.indexOf(tIDName)];
                 tID_MT = tID.substr(0, tID.lastIndexOf(".")) + "_MT" + tID.substr(tID.lastIndexOf("."));
                 sID_MR = sID.substr(0, tID.lastIndexOf(".")) + "_MR" + tID.substr(tID.lastIndexOf("."));
+                // debug
                 console.log("tID: " + tID);
                 console.log("sID: " + sID);
 
@@ -141,13 +145,14 @@ function merge_out(sourcePath, maniPath) {
                 fs.renameSync(path.join(changes_direc, sID), path.join(changes_direc, sID_MR), (err) => {
                     if (err) { console.log(err); }
                 });
-                case4fail = false;
+                // case4fail = false;
                 break;
             }
         }
 
         // Case 1 and Case 2
-        if (!sourceIDs.includes(tID) && case4fail) {
+        if (!sourceIDs.includes(tID)) { // && case4fail) {
+            console.log("CASE 1 & 2\n");
             // copies excluded files from target into the source's changes folder
             fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID), fs.constants.COPYFILE_FICLONE, function (err) {
                 if (err) { console.log(err); }
@@ -155,7 +160,9 @@ function merge_out(sourcePath, maniPath) {
             }); //need to put some more stuff here
         }
         // Case 3
-        else if (sourceIDs.includes(tID) && case4fail) {
+        else if (sourceIDs.includes(tID)) { // && case4fail) {
+            console.log("CASE 3\n");
+
             fse.move(path.join(repoPath, tID), path.join(changes_direc, tID), function (err) {
                 if (err) { console.log(err); }
 
@@ -724,7 +731,8 @@ function transfer_files(filePath, targetPath, ogsourcePath) {
         // removes dot files from list, but
         // prevents manifest dot files from being deleted
         if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) {
-            fs.unlinkSync(path.join(filePath, filenames[i]));
+            if(!(filenames[i].includes('.sourcebranch')))   // don't need source branch file in the changes folder for merge out
+                fs.unlinkSync(path.join(filePath, filenames[i]));
             filenames.splice(i, 1);
 
             // debug
