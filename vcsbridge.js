@@ -72,28 +72,46 @@ function merge_out(sourcePath, maniPath) {
 
     // target artifact IDs
     var targetIDs = [];
-    fs.readFileSync(maniPath, 'utf8', (err, content) => {
-        if (err) { console.log(err); }
-
-        let filenms = content.substr(content.lastIndexOf(":") + 1);
-        let arr = filenms.split("\n");
-        // debug
-        // console.log(filenms);
-        // console.log("split stuff: " + arr);
-
-        for (let i = 1; i < arr.length - 1; i++) {
-            // debug
-            console.log(i + ". " + arr[i]);
-
-            let tID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
-            targetIDs.add(tID);
-        }
+    let manicontent = fs.readFileSync(maniPath, 'utf8', (err) => {
+        if (err) { console.log(err); return err; }
     });
 
+    let filenms = manicontent.substr(manicontent.lastIndexOf(":") + 1);
+    let arr = filenms.split("\n");
+    for (let i = 1; i < arr.length - 1; i++) {
+        let tID = arr[i].substring(0, arr[i].indexOf("@") - 1);
+        console.log("inside loop tID: " + tID);
+        targetIDs.push(tID);
+    }
+
     // source artifact IDs
+    if (fs.existsSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"))) {
+        console.log("it exists!!!");
+    }
+
+    let sourcemani = fs.readFileSync(path.join(changes_direc, ".manifest" + manifest_num + ".txt"), 'utf8');
+    console.log("the manifest file being read: \n" + sourcemani);
+    // var sourceIDs = [];
+    // let souremani = fs.readFileSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"), 'utf8', (err) => {
+    //     if (err) { console.log(err); return err; }
+    // });
+    // console.log(sourcemani);
+
+    // filenms = souremani.substring(souremani.lastIndexOf(":") + 1);
+    // console.log("filenames inside the source manifest: " + filenms);
+    // arr = filenms.split("\n");
+    // for (let i = 1; i < arr.length - 1; i++) {
+    //     let sID = arr[i].substring(0, arr[i].indexOf("@") - 1);
+    //     console.log("inside the loop sID: " + sID);
+    //     sourceIDs.push(sID);
+    // }
+
+
     var sourceIDs = fs.readdirSync(repoPath + "/changes", 'utf8', (err) => {
         if (err) { console.log(err); }
     });
+
+    sourceIDs.splice(sourceIDs.indexOf(".manifest" + manifest_num + ".txt"), 1);
 
     // debug
     console.log("Source IDs: " + sourceIDs + "\n\n");
@@ -122,8 +140,13 @@ function merge_out(sourcePath, maniPath) {
     for (let tID of targetIDs) {
         tIDPath = tID.substr(0, tID.indexOf("-"));
         tIDName = tID.substr(tID.lastIndexOf("-") + 1, tID.lastIndexOf("."));
-        // let case4fail = true;
+        let case4fail = true;
 
+        console.log("tID: " + tID);
+        console.log("tIDPath: " + tIDPath);
+        console.log("tIDName: " + tIDName);
+
+        console.log("checking case 4");
         //case 4 is checked first because of its complexity 
         for (let sID of sourceIDs) {
             if (sID.includes(tIDPath) && sID.includes(tIDName)) {
@@ -151,21 +174,19 @@ function merge_out(sourcePath, maniPath) {
         }
 
         // Case 1 and Case 2
-        if (!sourceIDs.includes(tID)) { // && case4fail) {
-            console.log("CASE 1 & 2\n");
+        if (!sourceIDs.includes(tID) && case4fail) {
             // copies excluded files from target into the source's changes folder
+            console.log("CASE 1 & 2\n");
             fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID), fs.constants.COPYFILE_FICLONE, function (err) {
                 if (err) { console.log(err); }
 
             }); //need to put some more stuff here
         }
         // Case 3
-        else if (sourceIDs.includes(tID)) { // && case4fail) {
+        else if (sourceIDs.includes(tID) && case4fail) {
             console.log("CASE 3\n");
-
             fse.move(path.join(repoPath, tID), path.join(changes_direc, tID), function (err) {
                 if (err) { console.log(err); }
-
             });
         }
     }
@@ -731,7 +752,7 @@ function transfer_files(filePath, targetPath, ogsourcePath) {
         // removes dot files from list, but
         // prevents manifest dot files from being deleted
         if (filenames[i].charAt(0) == '.' && !(filenames[i].includes('.manifest'))) {
-            if(!(filenames[i].includes('.sourcebranch')))   // don't need source branch file in the changes folder for merge out
+            if (!(filenames[i].includes('.sourcebranch')))   // don't need source branch file in the changes folder for merge out
                 fs.unlinkSync(path.join(filePath, filenames[i]));
             filenames.splice(i, 1);
 
