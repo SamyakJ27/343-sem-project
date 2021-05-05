@@ -26,22 +26,51 @@ app.get(
 
         // var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
 
-        merge_out(sourcePath, maniPath);
+        let sb = sourcePath + "/.sourcebranch.txt";
+        var sourceBranch = fs.readFileSync(sb, 'utf8', (err) => {
+            if (err) { console.log(err); return err; }
+        });
+
+        var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
+
+        changes_direc = path.join(repoPath, "changes");
+        if (!(fs.existsSync(changes_direc))) {
+            fs.mkdirSync(changes_direc);
+        }
+        build_manifest(sourcePath, changes_direc);
+
+        twocalls(transfer_files, merge_out, sourcePath, changes_direc, maniPath, sourceBranch);
+
+        //transfer_files(sourcePath, changes_direc, sourcePath);
+        //console.log("transfer files called before mergeout, lets see how this goes\n");
+        //merge_out(sourcePath, maniPath, sourceBranch);
     }
 );
+
+
+
+function twocalls(func1, func2, sp, cd, mp, sb) {
+    console.log("trying callback functions");
+    func1(sp, cd, sp);
+    console.log("between functions");
+    func2(sp, mp, sb);
+}
+
 
 /**
  * 
  * @param {string} sourcePath 
  * @param {string} repoPath 
  */
-function merge_out(sourcePath, maniPath) {
+function merge_out(sourcePath, maniPath, sourceBranch) {
     /* 
     merge out is only part 1 of the merge process
     so maybe want to transfer the files over to the repo in a changes directory
     then user can manually do the merge there and
     merge in will transfer those files in the changes directory into the repo?
     */
+    console.log("merge_out was called");
+
     var manifestname = maniPath.substr(last_slash_mark(maniPath) + 1);
     var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
 
@@ -50,18 +79,14 @@ function merge_out(sourcePath, maniPath) {
         fs.mkdirSync(changes_direc);
     }
 
-    let sb = sourcePath + "/.sourcebranch.txt";
-    var sourceBranch = fs.readFileSync(sb, 'utf8', (err) => {
-        if (err) { console.log(err); return err; }
-    });
 
     let rb = repoPath + "/.branches.txt";
     var repoBranches = fs.readFileSync(rb, 'utf8', (err) => {
         if (err) { console.log(err); return err; }
     });
 
-    build_manifest(sourcePath, changes_direc);
-    transfer_files(sourcePath, changes_direc, sourcePath);
+    //build_manifest(sourcePath, changes_direc);
+    //transfer_files(sourcePath, changes_direc, sourcePath);
     // debug
     console.log("Transfer complete\n\n");
 
@@ -91,27 +116,27 @@ function merge_out(sourcePath, maniPath) {
 
     let sourcemani = fs.readFileSync(path.join(changes_direc, ".manifest" + manifest_num + ".txt"), 'utf8');
     console.log("the manifest file being read: \n" + sourcemani);
-    // var sourceIDs = [];
-    // let souremani = fs.readFileSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"), 'utf8', (err) => {
-    //     if (err) { console.log(err); return err; }
-    // });
-    // console.log(sourcemani);
-
-    // filenms = souremani.substring(souremani.lastIndexOf(":") + 1);
-    // console.log("filenames inside the source manifest: " + filenms);
-    // arr = filenms.split("\n");
-    // for (let i = 1; i < arr.length - 1; i++) {
-    //     let sID = arr[i].substring(0, arr[i].indexOf("@") - 1);
-    //     console.log("inside the loop sID: " + sID);
-    //     sourceIDs.push(sID);
-    // }
-
-
-    var sourceIDs = fs.readdirSync(repoPath + "/changes", 'utf8', (err) => {
-        if (err) { console.log(err); }
+    var sourceIDs = [];
+    let souremani = fs.readFileSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"), 'utf8', (err) => {
+        if (err) { console.log(err); return err; }
     });
+    console.log(sourcemani);
 
-    sourceIDs.splice(sourceIDs.indexOf(".manifest" + manifest_num + ".txt"), 1);
+    filenms = souremani.substring(souremani.lastIndexOf(":") + 1);
+    console.log("filenames inside the source manifest: " + filenms);
+    arr = filenms.split("\n");
+    for (let i = 1; i < arr.length - 1; i++) {
+        let sID = arr[i].substring(0, arr[i].indexOf("@") - 1);
+        console.log("inside the loop sID: " + sID);
+        sourceIDs.push(sID);
+    }
+
+
+    // var sourceIDs = fs.readdirSync(repoPath + "/changes", 'utf8', (err) => {
+    //     if (err) { console.log(err); }
+    // });
+
+    // sourceIDs.splice(sourceIDs.indexOf(".manifest" + manifest_num + ".txt"), 1);
 
     // debug
     console.log("Source IDs: " + sourceIDs + "\n\n");
@@ -771,13 +796,18 @@ function transfer_files(filePath, targetPath, ogsourcePath) {
         // else the file path must be a directory t/f call transfer_files() on it
         if (fse.lstatSync(filePath).isFile()) {
             var content = fs.readFileSync(filePath, 'utf8');
-            artID(filePath, content, targetPath, file, ogsourcePath);
+            artID(filePath, content, targetPath, file, ogsourcePath, extra);
             filePath = temp;
         } else {
             transfer_files(filePath, targetPath, ogsourcePath);
             filePath = temp;
         }
     });
+}
+
+
+function extra() {
+    console.log("fnished!!");
 }
 
 /**
@@ -792,7 +822,7 @@ function transfer_files(filePath, targetPath, ogsourcePath) {
  * @param {string} file - file name
  * @param {string} ogsourcePath - original source path directory
  */
-function artID(filePath, content, targetPath, file, ogsourcePath) {
+function artID(filePath, content, targetPath, file, ogsourcePath, extra) {
     var hashOffset = 4; // four patterned calculations
     var r = 0; // remainder
     var hexTotal = 0; // hexadecimal calculation
@@ -855,12 +885,14 @@ function artID(filePath, content, targetPath, file, ogsourcePath) {
     // console.log(extralen);
 
     console.log(artifactName + " @ " + sub + "\n");
-    fs.appendFile(a, artifactName + " @ " + sub + "\n", function (err) {
-        if (err) throw err;
-        console.log("added " + file);
-        console.log(artifactName + " @ " + sub);
-    });
+    fs.appendFileSync(a, artifactName + " @ " + sub + "\n", 'utf8');
+    // fs.appendFile(a, artifactName + " @ " + sub + "\n", function (err) {
+    //     if (err) throw err;
+    //     console.log("added " + file);
+    //     console.log(artifactName + " @ " + sub);
+    // });
 
+    extra();
     // debug
     // console.log('Art ID: A:' + A + '/B:' + B + '-C:' + C + '-F:' + file);
 }
