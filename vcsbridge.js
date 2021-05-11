@@ -114,21 +114,24 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
         console.log("it exists!!!");
     }
 
-    let sourcemani = fs.readFileSync(path.join(changes_direc, ".manifest" + manifest_num + ".txt"), 'utf8');
-    console.log("the manifest file being read: \n" + sourcemani);
+    // let sourcemani = fs.readFileSync(path.join(changes_direc, ".manifest" + manifest_num + ".txt"), 'utf8');
     var sourceIDs = [];
-    let souremani = fs.readFileSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"), 'utf8', (err) => {
+    var sourceDirecs = [];   // needed to add original source directories since the files don't "exist" in the changes directory yet
+    let sourcemani = fs.readFileSync(path.join(repoPath, "changes", ".manifest" + manifest_num + ".txt"), 'utf8', (err) => {
         if (err) { console.log(err); return err; }
     });
+    console.log("the manifest file being read: \n" + sourcemani);
     console.log(sourcemani);
 
-    filenms = souremani.substring(souremani.lastIndexOf(":") + 1);
+    filenms = sourcemani.substring(sourcemani.lastIndexOf(":") + 1);
     console.log("filenames inside the source manifest: " + filenms);
     arr = filenms.split("\n");
     for (let i = 1; i < arr.length - 1; i++) {
         let sID = arr[i].substring(0, arr[i].indexOf("@") - 1);
+        let sDir = arr[i].substring(arr[i].indexOf("@") + 2);
         console.log("inside the loop sID: " + sID);
         sourceIDs.push(sID);
+        sourceDirecs.push(sDir + sID);
     }
 
 
@@ -140,6 +143,7 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
 
     // debug
     console.log("Source IDs: " + sourceIDs + "\n\n");
+    console.log("Source Dirs: " + sourceDirecs + "\n\n");
     console.log("Target IDs: " + targetIDs + "\n\n");
 
     // NOTE: readdirSync() reads all the filenames and puts into array
@@ -187,13 +191,34 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                     if (err) { console.log(err); }
                 });
 
-
                 find_grandma(sourceBranch, repoBranches);
 
-                fs.renameSync(path.join(changes_direc, sID), path.join(changes_direc, sID_MR), (err) => {
+                fs.readdir(changes_direc, (files, err) => {
+                    if(err) { console.log(err); }
+                    console.log("\n\n" + files + "\n\n");
+                });
+
+                // debug
+                // if(fs.existsSync(path.join(changes_direc, sID))) {
+                //     console.log("\n\nsID exists\n\n");
+                // }
+                // if(fs.existsSync(path.join(changes_direc, sID_MR))) {
+                //     console.log("sID_MR exists");
+                // }
+                
+                // Indexes the correct source directory
+                console.log("\n\nSource Direcs for each");
+                let dirIndex = -1;
+                sourceDirecs.forEach((dir) => {
+                    console.log(dir);
+                    if(dir.indexOf(sID) > 0) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
+                });
+                console.log("dirIndex = " + dirIndex);
+
+                fs.copyFile(path.join(sourcePath, sourceDirecs[dirIndex]), path.join(changes_direc, sID_MR), fs.constants.COPYFILE_FICLONE, (err) => {
                     if (err) { console.log(err); }
                 });
-                // case4fail = false;
+                case4fail = false;
                 break;
             }
         }
