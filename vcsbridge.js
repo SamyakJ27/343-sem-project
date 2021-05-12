@@ -191,7 +191,24 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                     if (err) { console.log(err); }
                 });
 
-                find_grandma(sourceBranch, repoBranches);
+                // grandma section: finding the grandma manifest then extracting the correct artifact ID and copy file from repo to changes directory
+                grandmaFile = path.join(repoPath, find_grandma(sourceBranch, repoBranches));
+                grandmaMani = fs.readFileSync(grandmaFile, 'utf8', (err) => {
+                    if (err) { console.log(err); return err; }
+                });
+                grandmaMani = grandmaMani.split("\n");
+                let gID = "";
+                grandmaMani.forEach((fileLine) => {
+                    if(fileLine.indexOf(tIDName) > -1) {
+                        gID = fileLine.substring(0, fileLine.indexOf("@") - 1);;
+                    }
+                });
+                gID = gID.substr(0, gID.lastIndexOf(".")) + "_GM" + gID.substr(gID.lastIndexOf("."));
+                console.log("gID:", gID);
+                fs.copyFile(path.join(repoPath, gID), path.join(changes_direc, gID), fs.constants.COPYFILE_FICLONE, function (err) {
+                    if (err) { console.log(err); }
+                });
+
 
                 fs.readdir(changes_direc, (files, err) => {
                     if(err) { console.log(err); }
@@ -211,7 +228,7 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                 let dirIndex = -1;
                 sourceDirecs.forEach((dir) => {
                     console.log(dir);
-                    if(dir.indexOf(sID) > 0) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
+                    if(dir.indexOf(sID) > -1) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
                 });
                 console.log("dirIndex = " + dirIndex);
 
@@ -250,8 +267,16 @@ function find_grandma(sourceBranch, repoBranches) {
     // go to next line in repobranches if a manifest does not match
     // keep comparing until the end of the file
     console.log("we are finding grandma here");
+    let gMA = "";
+    sourceBranch.forEach((sb) => {
+        if(repoBranches.includes(sb)) {
+            gMA = sb;
+        }
+    });
 
+    console.log("\n\ngMA:" + gMA + "\n\n");
 
+    return gMA;
 }
 
 app.get(
