@@ -73,6 +73,7 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
 
     var manifestname = maniPath.substr(last_slash_mark(maniPath) + 1);
     var repoPath = maniPath.substr(0, last_slash_mark(maniPath));
+    var maniname = manifestname.substring(1, manifestname.lastIndexOf("."));
 
     changes_direc = path.join(repoPath, "changes");
     if (!(fs.existsSync(changes_direc))) {
@@ -192,14 +193,15 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                 });
 
                 // grandma section: finding the grandma manifest then extracting the correct artifact ID and copy file from repo to changes directory
-                grandmaFile = path.join(repoPath, find_grandma(sourceBranch, repoBranches));
+                grandmaFile = path.join(repoPath, find_grandma(sourceBranch, repoBranches, maniname));
+                console.log("\nAfter grandma was called: \n\n");
                 grandmaMani = fs.readFileSync(grandmaFile, 'utf8', (err) => {
                     if (err) { console.log(err); return err; }
                 });
                 grandmaMani = grandmaMani.split("\n");
                 let gID = "";
                 grandmaMani.forEach((fileLine) => {
-                    if(fileLine.indexOf(tIDName) > -1) {
+                    if (fileLine.indexOf(tIDName) > -1) {
                         gID = fileLine.substring(0, fileLine.indexOf("@") - 1);;
                     }
                 });
@@ -211,7 +213,7 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
 
 
                 fs.readdir(changes_direc, (files, err) => {
-                    if(err) { console.log(err); }
+                    if (err) { console.log(err); }
                     console.log("\n\n" + files + "\n\n");
                 });
 
@@ -222,13 +224,13 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                 // if(fs.existsSync(path.join(changes_direc, sID_MR))) {
                 //     console.log("sID_MR exists");
                 // }
-                
+
                 // Indexes the correct source directory
                 console.log("\n\nSource Direcs for each");
                 let dirIndex = -1;
                 sourceDirecs.forEach((dir) => {
                     console.log(dir);
-                    if(dir.indexOf(sID) > -1) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
+                    if (dir.indexOf(sID) > -1) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
                 });
                 console.log("dirIndex = " + dirIndex);
 
@@ -259,24 +261,59 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
     }
 }
 
-function find_grandma(sourceBranch, repoBranches) {
+function find_grandma(sourceBranch, repoBranches, maniname) {
     // use the sourcebranch and branches files to find the last matching manifest
     // parameters will need to be the source project tree and the target branches according to the manifest
 
     // for loop the sourcebranch then see which repo branch matches
     // go to next line in repobranches if a manifest does not match
     // keep comparing until the end of the file
+
     console.log("we are finding grandma here");
     let gMA = "";
-    sourceBranch.forEach((sb) => {
-        if(repoBranches.includes(sb)) {
-            gMA = sb;
+    console.log("sourcebranches: " + sourceBranch);
+    console.log("repoBranches: " + repoBranches);
+    console.log("maniname: " + maniname);
+    //issues i found out, sourcebranch is a string of one line, need to split on ", " include hte space as well 
+    //for repobranchs you have the entire file, need to seperate them by lines and then go throught each part of htis new variable 
+    //and divide them into lists on hte same ", " and then loop throught this list and see what hte latest common is based on the sourcebranch list 
+    //also when returning, need to inclue the . before and the .txt with the output becausr that how its being used in the method 
+    let branchs = repoBranches.split("\n");
+    console.log("branches: " + branchs + "\n");
+    for (let br of branchs) {
+        console.log("br: " + br);
+        if (br.includes(maniname)) {
+            let manis = br.split(", ");
+            console.log("manis: " + manis + "space check and size: " + manis.length);
+            for (let i = 0; i < manis.length - 1; i++) {                                 //if any issues arrise it would be here in hte for loop 
+                console.log(manis[i]);
+                if (sourceBranch.includes(manis[i]) && manis[i] != "") {
+                    gMA = manis[i];
+                    console.log("gMA: " + gMA);
+                }
+            }
+            // manis.forEach((man) => {
+            //     console.log(man);
+            //     if (sourceBranch.includes(man)) {
+            //         gMA = man;
+            //         console.log("gMA: " + gMA);
+            //     }
+            // });
         }
-    });
+
+    }
+
+
+    // sourceBranch.forEach((sb) => {
+    //     if (repoBranches.includes(sb)) {
+    //         gMA = sb;
+    //     }
+    // });
 
     console.log("\n\ngMA:" + gMA + "\n\n");
-
-    return gMA;
+    ret = "." + gMA + ".txt";
+    console.log("ret: " + ret);
+    return ret;
 }
 
 app.get(
