@@ -66,6 +66,12 @@ function twocalls(func1, func2, sp, cd, mp, sb) {
     func1(sp, cd, sp);
     console.log("between functions");
     func2(sp, mp, sb);
+    let fil = fs.readdirSync(cd);
+    for (let f of fil) {
+        if (f.includes(".manifest")) {
+            fs.unlinkSync(path.join(cd, f));
+        }
+    }
 }
 
 
@@ -249,9 +255,11 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                 });
                 console.log("dirIndex = " + dirIndex);
 
-                fs.copyFile(path.join(sourcePath, sourceDirecs[dirIndex]), path.join(changes_direc, sID_MR), fs.constants.COPYFILE_FICLONE, (err) => {
-                    if (err) { console.log(err); }
-                });
+                // fs.copyFile(path.join(sourcePath, sourceDirecs[dirIndex]), path.join(changes_direc, sID_MR), fs.constants.COPYFILE_FICLONE, (err) => {
+                //     if (err) { console.log(err); }
+                // });
+                fs.renameSync(path.join(changes_direc, sID), path.join(changes_direc, sID_MR));
+
                 case4fail = false;
                 break;
             }
@@ -309,14 +317,20 @@ function clean_up(direc) {
         }
 
     }
-
+    console.log("\n\nremoving the artifact ID at the moment: \n")
+    fils = fs.readdirSync(direc, 'utf-8');
+    console.log("fils after reading again: " + fils);
     for (let f of fils) {
         let n = f.substr(f.lastIndexOf("-") + 1);
-        fs.rename(path.join(direc, f), path.join(direc, n), (err) => {
-            if (err) console.log(err); return err;
+        console.log("f: " + f);
+        console.log("n: " + n);
+        fs.renameSync(path.join(direc, f), path.join(direc, n), (err) => {
+            if (err) { console.log(err); return err; }
+            console.log("renamed: " + f + " to " + n);
         });
     }
-
+    console.log("files in directory:");
+    console.log(fs.readdirSync(direc, 'utf-8', (err) => { if (err) return err; }));
 }
 
 /**
@@ -402,8 +416,8 @@ app.get(
         for (let f of del) {
             fs.unlinkSync(path.join(changesPath, f));
         }
-        fs.unlinkSync(changesPath);
-
+        //fs.unlinkSync(changesPath);
+        fs.rmdirSync(changesPath);
         res.send("Merge process complete. Merged files appear in manifest" + manifest_num);
     }
 );
@@ -417,6 +431,7 @@ app.get(
 function merge_in(changesPath, repoPath) {
     console.log("\nmerge in check in called\n");
     clean_up(changesPath);
+    console.log("after clean up: now on to check_in the files\n\n");
     check_in(changesPath, repoPath, 1);
     console.log("\nafter check in merge in\n");
 }
@@ -1142,11 +1157,13 @@ function artID(filePath, content, targetPath, file, ogsourcePath, extra) {
     // if(fs.exists(targetPath, (err) => { if(err) { console.log(err); } console.log('Target Exists...'); }));
     // if(fs.exists(name, (err) => { if(err) { console.log(err); } console.log('Name Exists...'); }));
 
-    fs.copyFile(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
+    fs.copyFileSync(filePath, tempName, fs.constants.COPYFILE_FICLONE, function (err) {
         if (err) { console.log(err); }
-        // NOTE: causes error if file already exists, should use fs.exists() to check for error
-        fse.move(tempName, name, (err) => { console.log(err); });
+        // // NOTE: causes error if file already exists, should use fs.exists() to check for error
+        // fse.move(tempName, name, (err) => { console.log(err); });
     });
+    // NOTE: causes error if file already exists, should use fs.exists() to check for error
+    fse.moveSync(tempName, name, (err) => { console.log(err); });
 
     /* adds to the existing manifest file with artifact ID files */
     let extralen = filePath.length - ogsourcePath.length - file.length;
