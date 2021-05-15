@@ -1,26 +1,39 @@
 # Version Control System
-## CECS 343 - Sec 06 
-### Gung Hoes - James, Samyak, Rishika, Rifat
+## Gung Hoes - James, Samyak, Rishika, Rifat
+### CECS 343 - Sec 06 
 
-This purpose of this project is to mirror a version control system similar to github. This repository stores a semester-long project assigned by Charles Siska, the professor of CS 343 at CSULB.
+---
+
+## Description:
+This purpose of this project is to mirror a version control system similar to github. This repository stores a semester-long project assigned by Charles Siska, our CECS 343 professor at CSULB.
 
 ## Contents: 
-background.jpg, files.html, files.js, package-lock.json, package.json, vcsbridge.js, vcswebsite.html, style.css, README.md   
+- background.jpg
+- files.html
+- files.js
+- package-lock.json
+- package.json
+- vcsbridge.js
+- vcswebsite.html
+- style.css
+- README.md 
 
 ## External Requirements: 
 Node Js, Express Js
 
 ## Installation & Setup: 
-Need to install node and express Js and type in `node vcsbridge` into console to run the server and use this program. Go to web browser and search up "localhost:3000" to launch this on to a responsive webpage. 
+Need to install Node and Express Js and type in `node vcsbridge` into console to run the server and use this program. Go to web browser and search up `localhost:3000` to launch this on to a responsive webpage. 
 
 ## Results: 
-When code is inputted into form text boxes, user should see a responsive message acknowledging their action then logging that into the server.
+When information is inputted into form text boxes, user should see a responsive message acknowledging their action then logging that into the server. The user must go back to the previous page to continue any more VCS functions.
 
 ## Features: 
-Users can create a repository that is stored onto their local storage, rollback their work from previous repos, and finally pushing the code. A command line interface is also provided to go through the versions and move throughout the folders. With each submission, an artifactID is attached so that the user is informed when a push or change has been made.
+Users can create a repository that is stored onto their local storage, check in and check out any files in that storage, merge any conflicting changes, and more. We provide user-friendly and colorful web page for all these functions as well. With each submission, the user is notified of the function results and can see them in the specified file directory.
 
 ## Bugs: 
-When the merge out button is called upon, there's an artifact ID that is named .sourcebranch.txt as it is copied over into another folder. 
+- The folder hierarchies are not copying over into the new manifest upon completing the merge process.
+- The source branch file is also not updated since it is dependent on the new manifest and the old manifest.
+- Extra long Artifact ID's are generated after the Merge-In function.
 
 ### Third Party Material:
 stackoverflow.com, w3schools.com, nodejs.org, geeksforgeeks.com
