@@ -281,13 +281,23 @@ function clean_up(direc) {
         if (f.includes("_MR") || f.includes("_MT") || f.includes("_GM")) {
             continue;
         }
-        let filname = f.substring(0, f.lastIndexOf(".")) + "_MR" + f.substr(f.lastIndexOf("."));
+        let filnameMR = f.substring(0, f.lastIndexOf(".")) + "_MR" + f.substr(f.lastIndexOf("."));
+        let filnameMT = f.substring(0, f.lastIndexOf(".")) + "_MT" + f.substr(f.lastIndexOf("."));
+        let filnameGM = f.substring(0, f.lastIndexOf(".")) + "_GM" + f.substr(f.lastIndexOf("."));
+
         console.log("filname: " + filname);
-        if (fils.includes(filname)) {
+        if (fils.includes(filnameMR) || fils.includes(filnameMT) || fils.includes(filnameGM)) {
             fs.unlinkSync(path.join(direc, f));
             console.log("unlinked should have happened for: " + f + " at " + path.join(direc, f));
         }
 
+    }
+
+    for (let f of fils) {
+        let n = f.substr(f.lastIndexOf("-"));
+        fs.rename(path.join(direc, f), path.join(direc, n), (err) => {
+            if (err) console.log(err); return err;
+        });
     }
 
 }
@@ -367,9 +377,19 @@ app.get(
  */
 function merge_in(changesPath, repoPath) {
     console.log("\nmerge in check in called\n");
+    clean_up(changesPath);
     check_in(changesPath, repoPath, 1);
     console.log("\nafter check in merge in\n");
-    clean_up(changesPath);
+
+    let del = fs.readdirSync(changesPath, 'utf-8', (err) => {
+        if (err) {
+            console.log(err);
+            return err;
+        }
+    });
+    for (let f of del) {
+        fs.unlinkSync(path.join(changesPath, f));
+    }
     fs.unlinkSync(changesPath);
 }
 
@@ -520,15 +540,15 @@ app.get(
         //         if (err) { console.log(err); return err; }
         //     });
 
-            res.send('You can find your changes at ' + targetPath);
-        }
+        res.send('You can find your changes at ' + targetPath);
+    }
     // }
 );
 
 function check_in(sourcePath, targetPath, merge_bit) {
     let p = "";
     let path = "";
-    if(merge_bit == 0) {
+    if (merge_bit == 0) {
         p = sourcePath + "/.sourcebranch.txt";
         //reading the path of the branch
         path = fs.readFileSync(p, 'utf8', (err) => {
@@ -612,7 +632,7 @@ function check_in(sourcePath, targetPath, merge_bit) {
         //     console.log("pathline after adding next manifest: " + pathline);
         // });
 
-        if(merge_bit == 0) {
+        if (merge_bit == 0) {
             fs.writeFile(p, pathline, 'utf8', function (err) {
                 if (err) { console.log(err); return err; }
             });
