@@ -261,8 +261,8 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
             });
         }
     }
-    console.log("calling clean up: ");
-    clean_up(changes_direc);
+    // console.log("calling clean up: ");
+    // clean_up(changes_direc);
 }
 
 function clean_up(direc) {
@@ -285,7 +285,7 @@ function clean_up(direc) {
         let filnameMT = f.substring(0, f.lastIndexOf(".")) + "_MT" + f.substr(f.lastIndexOf("."));
         let filnameGM = f.substring(0, f.lastIndexOf(".")) + "_GM" + f.substr(f.lastIndexOf("."));
 
-        console.log("filname: " + filname);
+        // console.log("filname: " + filname);
         if (fils.includes(filnameMR) || fils.includes(filnameMT) || fils.includes(filnameGM)) {
             fs.unlinkSync(path.join(direc, f));
             console.log("unlinked should have happened for: " + f + " at " + path.join(direc, f));
@@ -294,7 +294,7 @@ function clean_up(direc) {
     }
 
     for (let f of fils) {
-        let n = f.substr(f.lastIndexOf("-"));
+        let n = f.substr(f.lastIndexOf("-") + 1);
         fs.rename(path.join(direc, f), path.join(direc, n), (err) => {
             if (err) console.log(err); return err;
         });
@@ -366,6 +366,17 @@ app.get(
 
         merge_in(changesPath, repoPath);
 
+        let del = fs.readdirSync(changesPath, 'utf-8', (err) => {
+            if (err) {
+                console.log(err);
+                return err;
+            }
+        });
+        for (let f of del) {
+            fs.unlinkSync(path.join(changesPath, f));
+        }
+        fs.unlinkSync(changesPath);
+
         res.send("Merge process complete. Merged files appear in manifest" + manifest_num);
     }
 );
@@ -380,17 +391,6 @@ function merge_in(changesPath, repoPath) {
     clean_up(changesPath);
     check_in(changesPath, repoPath, 1);
     console.log("\nafter check in merge in\n");
-
-    let del = fs.readdirSync(changesPath, 'utf-8', (err) => {
-        if (err) {
-            console.log(err);
-            return err;
-        }
-    });
-    for (let f of del) {
-        fs.unlinkSync(path.join(changesPath, f));
-    }
-    fs.unlinkSync(changesPath);
 }
 
 /**
