@@ -41,6 +41,7 @@ app.get(
 
         twocalls(transfer_files, merge_out, sourcePath, changes_direc, maniPath, sourceBranch);
 
+
         //transfer_files(sourcePath, changes_direc, sourcePath);
         //console.log("transfer files called before mergeout, lets see how this goes\n");
         //merge_out(sourcePath, maniPath, sourceBranch);
@@ -260,6 +261,35 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
             });
         }
     }
+    console.log("calling clean up: ");
+    clean_up(changes_direc);
+}
+
+function clean_up(direc) {
+    console.log("called cleanup: \n");
+    var fils = fs.readdirSync(direc, 'utf-8', (err) => {
+        if (err) {
+            console.log(err);
+            return err;
+        }
+    });
+
+    console.log("fils: " + fils);
+
+    for (let f of fils) {
+        console.log("\nf: " + f);
+        if (f.includes("_MR") || f.includes("_MT") || f.includes("_GM")) {
+            continue;
+        }
+        let filname = f.substring(0, f.lastIndexOf(".")) + "_MR" + f.substr(f.lastIndexOf("."));
+        console.log("filname: " + filname);
+        if (fils.includes(filname)) {
+            fs.unlinkSync(path.join(direc, f));
+            console.log("unlinked should have happened for: " + f + " at " + path.join(direc, f));
+        }
+
+    }
+
 }
 
 function find_grandma(sourceBranch, repoBranches, maniname) {
