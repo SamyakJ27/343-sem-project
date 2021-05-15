@@ -205,9 +205,10 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
                         gID = fileLine.substring(0, fileLine.indexOf("@") - 1);;
                     }
                 });
+                oldgID = gID;
                 gID = gID.substr(0, gID.lastIndexOf(".")) + "_GM" + gID.substr(gID.lastIndexOf("."));
                 console.log("gID:", gID);
-                fs.copyFile(path.join(repoPath, gID), path.join(changes_direc, gID), fs.constants.COPYFILE_FICLONE, function (err) {
+                fs.copyFile(path.join(repoPath, oldgID), path.join(changes_direc, gID), fs.constants.COPYFILE_FICLONE, function (err) {
                     if (err) { console.log(err); }
                 });
 
