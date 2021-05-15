@@ -85,8 +85,9 @@
     <!-- Listing Button -->
     <div class="listing">
         <form action="/get_listing_form" method="GET">
+            <label for="path"><br>Repo Path Directory:<br>
             <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name="repo_path"
-                placeholder="Input text here" required />
+                placeholder="Input repo path here" required />
             <br><br>
             <input class="pill" id="cr" type="submit" value="Listing" />
         </form>
@@ -128,12 +129,12 @@
     <!-- Merge In Button -->
     <div class="mergein">
         <form action="/get_mergein_text" method="GET">
+            <label for="path"><br>Changes Path Directory:<br>
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="changes_path" placeholder="Input changes path directory here" required /><br></label>
             <label for="path"><br>Repo Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="repo_path" placeholder="Input repo path directory here" required /><br></label>
-            <label for="path"><br>Target Path Directory:<br>
-                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="target_path" placeholder="Input target path here" required /><br></label>
+                    name="repo_path" placeholder="Input repo path here" required /><br></label>
             <br>
             <input class="pill" id="cr" type="submit" value="Merge In" />
         </form>

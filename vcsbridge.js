@@ -41,7 +41,7 @@ app.get(
 
         twocalls(transfer_files, merge_out, sourcePath, changes_direc, maniPath, sourceBranch);
 
-
+        res.send("your files can be found in the changed subdirectory inside the repo. <br>please make any appropriate changes then hit merge-in to complete the merge");
         //transfer_files(sourcePath, changes_direc, sourcePath);
         //console.log("transfer files called before mergeout, lets see how this goes\n");
         //merge_out(sourcePath, maniPath, sourceBranch);
@@ -351,20 +351,26 @@ app.get(
     '/get_mergein_text', // locates the merge in button in the HTML file
     function (req, res) {
         // Text box information
+        var changesPath = req.query.changes_path;
         var repoPath = req.query.repo_path;
-        var targetPath = req.query.target_path;
 
-        merge_in(repoPath, targetPath);
+        merge_in(changesPath, repoPath);
+
+        res.send("Merge process complete. Merged files appear in manifest" + manifest_num);
     }
 );
 
 /**
  * 
+ * @param {string} changesPath 
  * @param {string} repoPath 
- * @param {string} targetPath 
  */
-function merge_in(repoPath, targetPath) {
-
+function merge_in(changesPath, repoPath) {
+    console.log("\nmerge in check in called\n");
+    check_in(changesPath, repoPath, 1);
+    console.log("\nafter check in merge in\n");
+    clean_up(changesPath);
+    fs.unlinkSync(changesPath);
 }
 
 /**
@@ -422,100 +428,201 @@ app.get(
         var sourcePath = req.query.source_path;
         var targetPath = req.query.target_path;
 
-        let p = sourcePath + "/.sourcebranch.txt";
-        //reading the path of the branch
-        let path = fs.readFileSync(p, 'utf8', (err) => {
-            if (err) { console.log(err); return err; }
-        })
+        check_in(sourcePath, targetPath, 0);
 
-        // fs.readFileSync(p, 'utf8', (err, content) => {
+        // let p = sourcePath + "/.sourcebranch.txt";
+        // //reading the path of the branch
+        // let path = fs.readFileSync(p, 'utf8', (err) => {
         //     if (err) { console.log(err); return err; }
+        // })
 
-        //     path += content;
-        // });
+        // // fs.readFileSync(p, 'utf8', (err, content) => {
+        // //     if (err) { console.log(err); return err; }
 
-        console.log("the path inside the sourcebranch: " + path + "space check");
+        // //     path += content;
+        // // });
 
-        // checks if the given target directory path exists
-        // sends error message if it does not exist
-        if (!fs.existsSync(targetPath)) {
-            res.send(targetPath + " does not exist");
-        } else {
-            manifest_num++;   // increments global manifest number
-            // build_manifest(sourcePath, targetPath, labelName);   // again no frills
-            build_manifest(sourcePath, targetPath);
-            transfer_files(sourcePath, targetPath, sourcePath);
+        // console.log("the path inside the sourcebranch: " + path + "space check");
 
-            // Appends to the already existing label file with the updated manifest file and manifest number
-            let l = targetPath + "/.labels.txt";
-            fs.appendFile(l, "\nmanifest" + manifest_num + " - ", (err) => { console.log(err); });
+        // // checks if the given target directory path exists
+        // // sends error message if it does not exist
+        // if (!fs.existsSync(targetPath)) {
+        //     res.send(targetPath + " does not exist");
+        // } else {
+        //     manifest_num++;   // increments global manifest number
+        //     // build_manifest(sourcePath, targetPath, labelName);   // again no frills
+        //     build_manifest(sourcePath, targetPath);
+        //     transfer_files(sourcePath, targetPath, sourcePath);
 
-
-            console.log("the path inside the sourcebranch: " + path);
-            //finding the path of this branch and updating it 
-            let b = targetPath + "/.branches.txt";
-            // let firsthalf = "";
-            // let lasthalf = "";
-            // let pathline = "";
-            let content = fs.readFileSync(b, 'utf8', (err) => {
-                if (err) { console.log(err); return err; }
-            });
-
-            let lines = content.split("\n");
-            let index = 0;
-
-            //console.log("the lines: " + lines);
-
-            for (let line of lines) {
-                if (line == path) {
-                    break;
-                }
-                console.log("a line: " + line + "space check");
-                index += line.length + 1;
-            }
-            console.log("index: " + index);
-
-            let firsthalf = content.substr(0, index);
-            let lasthalf = content.substr(firsthalf.length + path.length);
-            let pathline = content.substr(content.indexOf(path), path.length);
-
-            console.log("og pathline: " + pathline);
-            console.log("firsthalf: " + firsthalf);
-            console.log("lsatpart: " + lasthalf);
-
-            pathline += "manifest" + manifest_num + ", ";
-
-            console.log("pathline after adding next manifest: " + pathline);
-
-            // fs.readFileSync(b, 'utf8', (err, content) => {
-            //     if (err) { console.log(err); return err; }
-
-            //     let firsthalf = content.substr(0, content.indexOf(path));
-            //     let lasthalf = content.substr(firsthalf.length + path.length);
-            //     let pathline = content.substr(content.indexOf(path), path.length);
-
-            //     console.log("og pathline: " + pathline);
-            //     console.log("firsthalf: " + firsthalf);
-            //     console.log("lsatpart: " + lasthalf);
+        //     // Appends to the already existing label file with the updated manifest file and manifest number
+        //     let l = targetPath + "/.labels.txt";
+        //     fs.appendFile(l, "\nmanifest" + manifest_num + " - ", (err) => { console.log(err); });
 
 
-            //     pathline += "manifest" + manifest_num + ", ";
+        //     console.log("the path inside the sourcebranch: " + path);
+        //     //finding the path of this branch and updating it 
+        //     let b = targetPath + "/.branches.txt";
+        //     // let firsthalf = "";
+        //     // let lasthalf = "";
+        //     // let pathline = "";
+        //     let content = fs.readFileSync(b, 'utf8', (err) => {
+        //         if (err) { console.log(err); return err; }
+        //     });
 
-            //     console.log("pathline after adding next manifest: " + pathline);
-            // });
+        //     let lines = content.split("\n");
+        //     let index = 0;
 
-            fs.writeFile(p, pathline, 'utf8', function (err) {
-                if (err) { console.log(err); return err; }
-            });
+        //     //console.log("the lines: " + lines);
 
-            fs.writeFile(b, firsthalf + pathline + lasthalf, 'utf8', function (err) {
-                if (err) { console.log(err); return err; }
-            });
+        //     for (let line of lines) {
+        //         if (line == path) {
+        //             break;
+        //         }
+        //         console.log("a line: " + line + "space check");
+        //         index += line.length + 1;
+        //     }
+        //     console.log("index: " + index);
+
+        //     let firsthalf = content.substr(0, index);
+        //     let lasthalf = content.substr(firsthalf.length + path.length);
+        //     let pathline = content.substr(content.indexOf(path), path.length);
+
+        //     console.log("og pathline: " + pathline);
+        //     console.log("firsthalf: " + firsthalf);
+        //     console.log("lsatpart: " + lasthalf);
+
+        //     pathline += "manifest" + manifest_num + ", ";
+
+        //     console.log("pathline after adding next manifest: " + pathline);
+
+        //     // fs.readFileSync(b, 'utf8', (err, content) => {
+        //     //     if (err) { console.log(err); return err; }
+
+        //     //     let firsthalf = content.substr(0, content.indexOf(path));
+        //     //     let lasthalf = content.substr(firsthalf.length + path.length);
+        //     //     let pathline = content.substr(content.indexOf(path), path.length);
+
+        //     //     console.log("og pathline: " + pathline);
+        //     //     console.log("firsthalf: " + firsthalf);
+        //     //     console.log("lsatpart: " + lasthalf);
+
+
+        //     //     pathline += "manifest" + manifest_num + ", ";
+
+        //     //     console.log("pathline after adding next manifest: " + pathline);
+        //     // });
+
+        //     fs.writeFile(p, pathline, 'utf8', function (err) {
+        //         if (err) { console.log(err); return err; }
+        //     });
+
+        //     fs.writeFile(b, firsthalf + pathline + lasthalf, 'utf8', function (err) {
+        //         if (err) { console.log(err); return err; }
+        //     });
 
             res.send('You can find your changes at ' + targetPath);
         }
-    }
+    // }
 );
+
+function check_in(sourcePath, targetPath, merge_bit) {
+    let p = "";
+    let path = "";
+    if(merge_bit == 0) {
+        p = sourcePath + "/.sourcebranch.txt";
+        //reading the path of the branch
+        path = fs.readFileSync(p, 'utf8', (err) => {
+            if (err) { console.log(err); return err; }
+        });
+    }
+
+    // fs.readFileSync(p, 'utf8', (err, content) => {
+    //     if (err) { console.log(err); return err; }
+
+    //     path += content;
+    // });
+
+    console.log("the path inside the sourcebranch: " + path + "space check");
+
+    // checks if the given target directory path exists
+    // sends error message if it does not exist
+    if (!fs.existsSync(targetPath)) {
+        res.send(targetPath + " does not exist");
+    } else {
+        manifest_num++;   // increments global manifest number
+        // build_manifest(sourcePath, targetPath, labelName);   // again no frills
+        build_manifest(sourcePath, targetPath);
+        transfer_files(sourcePath, targetPath, sourcePath);
+
+        // Appends to the already existing label file with the updated manifest file and manifest number
+        let l = targetPath + "/.labels.txt";
+        fs.appendFile(l, "\nmanifest" + manifest_num + " - ", (err) => { console.log(err); });
+
+
+        console.log("the path inside the sourcebranch: " + path);
+        //finding the path of this branch and updating it 
+        let b = targetPath + "/.branches.txt";
+        // let firsthalf = "";
+        // let lasthalf = "";
+        // let pathline = "";
+        let content = fs.readFileSync(b, 'utf8', (err) => {
+            if (err) { console.log(err); return err; }
+        });
+
+        let lines = content.split("\n");
+        let index = 0;
+
+        //console.log("the lines: " + lines);
+
+        for (let line of lines) {
+            if (line == path) {
+                break;
+            }
+            console.log("a line: " + line + "space check");
+            index += line.length + 1;
+        }
+        console.log("index: " + index);
+
+        let firsthalf = content.substr(0, index);
+        let lasthalf = content.substr(firsthalf.length + path.length);
+        let pathline = content.substr(content.indexOf(path), path.length);
+
+        console.log("og pathline: " + pathline);
+        console.log("firsthalf: " + firsthalf);
+        console.log("lsatpart: " + lasthalf);
+
+        pathline += "manifest" + manifest_num + ", ";
+
+        console.log("pathline after adding next manifest: " + pathline);
+
+        // fs.readFileSync(b, 'utf8', (err, content) => {
+        //     if (err) { console.log(err); return err; }
+
+        //     let firsthalf = content.substr(0, content.indexOf(path));
+        //     let lasthalf = content.substr(firsthalf.length + path.length);
+        //     let pathline = content.substr(content.indexOf(path), path.length);
+
+        //     console.log("og pathline: " + pathline);
+        //     console.log("firsthalf: " + firsthalf);
+        //     console.log("lsatpart: " + lasthalf);
+
+
+        //     pathline += "manifest" + manifest_num + ", ";
+
+        //     console.log("pathline after adding next manifest: " + pathline);
+        // });
+
+        if(merge_bit == 0) {
+            fs.writeFile(p, pathline, 'utf8', function (err) {
+                if (err) { console.log(err); return err; }
+            });
+        }
+
+        fs.writeFile(b, firsthalf + pathline + lasthalf, 'utf8', function (err) {
+            if (err) { console.log(err); return err; }
+        });
+    }
+}
 
 /**
  * Builds the manifest and writes the necessary information
