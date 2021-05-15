@@ -17,6 +17,9 @@ app.use(express.static('./'));
 /** @param {int} manifest_num - Global manifest number for manifest file ordering */
 var manifest_num = 0;
 
+/**
+ * Merge-Out
+ */
 app.get(
     '/get_mergeout_text', // locates the merge out button in the HTML file
     function (req, res) {
@@ -49,7 +52,15 @@ app.get(
 );
 
 
-
+/**
+ * Handles the asynchronous issues that occur.
+ * @param {transfer_files} func1 
+ * @param {merge_out} func2 
+ * @param {string} sp - source path directory
+ * @param {string} cd - changes path directory
+ * @param {string} mp - manifest path directory
+ * @param {string[]} sb - source branch list
+ */
 function twocalls(func1, func2, sp, cd, mp, sb) {
     console.log("trying callback functions");
     func1(sp, cd, sp);
@@ -59,9 +70,11 @@ function twocalls(func1, func2, sp, cd, mp, sb) {
 
 
 /**
- * 
- * @param {string} sourcePath 
- * @param {string} repoPath 
+ * Merges out the changes the user wants in the target file.
+ * Distinguishes any conflicting changes between files and labels the files appropriately.
+ * @param {string} sourcePath - source directory to be merged out
+ * @param {string} maniPath - target file to be compared with
+ * @param {string} sourceBranch - branch list of the source directory
  */
 function merge_out(sourcePath, maniPath, sourceBranch) {
     /* 
@@ -265,6 +278,10 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
     // clean_up(changes_direc);
 }
 
+/**
+ * Removes unnecessary files and file information in the specified directory.
+ * @param {string} direc - directory to be cleaned
+ */
 function clean_up(direc) {
     console.log("called cleanup: \n");
     var fils = fs.readdirSync(direc, 'utf-8', (err) => {
@@ -302,6 +319,13 @@ function clean_up(direc) {
 
 }
 
+/**
+ * Searches for the last common manifest file in the respective branches and returns it.
+ * @param {string} sourceBranch - source directory branch list
+ * @param {string} repoBranches - repo directory branch list
+ * @param {string} maniname - common manifest file name
+ * @returns {string} ret - grandma manifest file
+ */
 function find_grandma(sourceBranch, repoBranches, maniname) {
     // use the sourcebranch and branches files to find the last matching manifest
     // parameters will need to be the source project tree and the target branches according to the manifest
@@ -357,6 +381,9 @@ function find_grandma(sourceBranch, repoBranches, maniname) {
     return ret;
 }
 
+/**
+ * Merge-In
+ */
 app.get(
     '/get_mergein_text', // locates the merge in button in the HTML file
     function (req, res) {
@@ -382,7 +409,8 @@ app.get(
 );
 
 /**
- * 
+ * Merges in the files from the changes directory into the repo directory.
+ * Cleans up any remaining files in the changes directory to be ready for check in and deletion.
  * @param {string} changesPath 
  * @param {string} repoPath 
  */
