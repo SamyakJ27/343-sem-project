@@ -33,7 +33,7 @@ Users can create a repository that is stored onto their local storage, check in 
 ## Bugs: 
 - The folder hierarchies are not copying over into the new manifest upon completing the merge process.
 - The source branch file is also not updated since it is dependent on the new manifest and the old manifest.
-- Extra long Artifact ID's are generated after the Merge-In function.
+- Manifest file for merge-out is written as any other files in the manifest file for merge-in
 
 ### Third Party Material:
 stackoverflow.com, w3schools.com, nodejs.org, geeksforgeeks.com

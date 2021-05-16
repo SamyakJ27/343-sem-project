@@ -40,6 +40,7 @@ app.get(
         if (!(fs.existsSync(changes_direc))) {
             fs.mkdirSync(changes_direc);
         }
+        manifest_num++;
         build_manifest(sourcePath, changes_direc);
 
         twocalls(transfer_files, merge_out, sourcePath, changes_direc, maniPath, sourceBranch);
@@ -66,12 +67,15 @@ function twocalls(func1, func2, sp, cd, mp, sb) {
     func1(sp, cd, sp);
     console.log("between functions");
     func2(sp, mp, sb);
-    let fil = fs.readdirSync(cd);
-    for (let f of fil) {
-        if (f.includes(".manifest")) {
-            fs.unlinkSync(path.join(cd, f));
-        }
-    }
+    // let fil = fs.readdirSync(cd);
+    // for (let f of fil) {
+    //     if (f.includes(".manifest")) {
+    //         fs.unlinkSync(path.join(cd, f));
+    //     }
+    // }
+    let repoPath = mp.substr(0, last_slash_mark(mp));
+    let brfile = path.join(repoPath, ".branches.txt");
+    fs.appendFileSync(brfile, "\n");
 }
 
 
@@ -167,28 +171,10 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
     console.log("Source Dirs: " + sourceDirecs + "\n\n");
     console.log("Target IDs: " + targetIDs + "\n\n");
 
-    // NOTE: readdirSync() reads all the filenames and puts into array
-    // fs.readFileSync(maniPath, 'utf8', (err, content) => {
-    //     if (err) { console.log(err); }
-
-    //     let filenms = content.substr(content.lastIndexOf(":") + 1);
-    //     let arr = filenms.split("\n");
-    //     // debug
-    //     // console.log(filenms);
-    //     // console.log("split stuff: " + arr);
-
-    //     for (let i = 1; i < arr.length - 1; i++) {
-    //         // debug
-    //         // console.log(i + ". " + arr[i]);
-
-    //         let sID = arr[i].substr(0, arr[i].indexOf("@") - 1); // the full artifact id name
-    //         sourceIDs.add(tID);
-    //     }
-    // });
 
     // compare the sourceIDs with the targetIDs
     for (let tID of targetIDs) {
-        tIDPath = tID.substr(0, tID.indexOf("-"));
+        tIDPath = tID.substr(tID.lastIndexOf('-') - 4, 4);
         tIDName = tID.substr(tID.lastIndexOf("-") + 1, tID.lastIndexOf("."));
         let case4fail = true;
 
@@ -199,69 +185,98 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
         console.log("checking case 4");
         //case 4 is checked first because of its complexity 
         for (let sID of sourceIDs) {
-            if (sID.includes(tIDPath) && sID.includes(tIDName)) {
-
-                //let sID = sourceIDs[sourceIDs.indexOf(tIDName)];
-                tID_MT = tID.substr(0, tID.lastIndexOf(".")) + "_MT" + tID.substr(tID.lastIndexOf("."));
-                sID_MR = sID.substr(0, tID.lastIndexOf(".")) + "_MR" + tID.substr(tID.lastIndexOf("."));
-                // debug
-                console.log("tID: " + tID);
-                console.log("sID: " + sID);
-
-                fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID_MT), fs.constants.COPYFILE_FICLONE, function (err) {
-                    if (err) { console.log(err); }
-                });
-
-                // grandma section: finding the grandma manifest then extracting the correct artifact ID and copy file from repo to changes directory
-                grandmaFile = path.join(repoPath, find_grandma(sourceBranch, repoBranches, maniname));
-                console.log("\nAfter grandma was called: \n\n");
-                grandmaMani = fs.readFileSync(grandmaFile, 'utf8', (err) => {
-                    if (err) { console.log(err); return err; }
-                });
-                grandmaMani = grandmaMani.split("\n");
-                let gID = "";
-                grandmaMani.forEach((fileLine) => {
-                    if (fileLine.indexOf(tIDName) > -1) {
-                        gID = fileLine.substring(0, fileLine.indexOf("@") - 1);;
+            if (!(sID.includes(tIDPath)) && sID.includes(tIDName)) {
+                let real_case4 = true;
+                for (let allsID of sourceIDs) {
+                    if (allsID.includes(tIDPath) && allsID.includes(tIDName)) {
+                        real_case4 = false;
                     }
-                });
-                let oldgID = gID;
-                gID = gID.substr(0, gID.lastIndexOf(".")) + "_GM" + gID.substr(gID.lastIndexOf("."));
-                console.log("gID:", gID);
-                fs.copyFile(path.join(repoPath, oldgID), path.join(changes_direc, gID), fs.constants.COPYFILE_FICLONE, function (err) {
-                    if (err) { console.log(err); }
-                });
+                }
+                if (real_case4) {
+                    //let sID = sourceIDs[sourceIDs.indexOf(tIDName)];
+                    tID_MT = tID.substr(0, tID.lastIndexOf(".")) + "_MT" + tID.substr(tID.lastIndexOf("."));
+                    sID_MR = sID.substr(0, tID.lastIndexOf(".")) + "_MR" + tID.substr(tID.lastIndexOf("."));
+                    // debug
+                    console.log("tID: " + tID);
+                    console.log("sID: " + sID);
+
+                    fs.copyFile(path.join(repoPath, tID), path.join(changes_direc, tID_MT), fs.constants.COPYFILE_FICLONE, function (err) {
+                        if (err) { console.log(err); }
+                    });
+
+                    // grandma section: finding the grandma manifest then extracting the correct artifact ID and copy file from repo to changes directory
+                    grandmaFile = path.join(repoPath, find_grandma(sourceBranch, repoBranches, maniname));
+                    console.log("\nAfter grandma was called: \n\n");
+                    grandmaMani = fs.readFileSync(grandmaFile, 'utf8', (err) => {
+                        if (err) { console.log(err); return err; }
+                    });
+                    grandmaMani = grandmaMani.split("\n");
+                    let gID = "";
+                    grandmaMani.forEach((fileLine) => {
+                        if (fileLine.indexOf(tIDName) > -1) {
+                            gID = fileLine.substring(0, fileLine.indexOf("@") - 1);;
+                        }
+                    });
+                    let oldgID = gID;
+                    gID = gID.substr(0, gID.lastIndexOf(".")) + "_GM" + gID.substr(gID.lastIndexOf("."));
+                    console.log("gID:", gID);
+                    fs.copyFile(path.join(repoPath, oldgID), path.join(changes_direc, gID), fs.constants.COPYFILE_FICLONE, function (err) {
+                        if (err) { console.log(err); }
+                    });
 
 
-                fs.readdir(changes_direc, (files, err) => {
-                    if (err) { console.log(err); }
-                    console.log("\n\n" + files + "\n\n");
-                });
+                    fs.readdir(changes_direc, (files, err) => {
+                        if (err) { console.log(err); }
+                        console.log("\n\n" + files + "\n\n");
+                    });
 
-                // debug
-                // if(fs.existsSync(path.join(changes_direc, sID))) {
-                //     console.log("\n\nsID exists\n\n");
-                // }
-                // if(fs.existsSync(path.join(changes_direc, sID_MR))) {
-                //     console.log("sID_MR exists");
-                // }
+                    // debug
+                    // if(fs.existsSync(path.join(changes_direc, sID))) {
+                    //     console.log("\n\nsID exists\n\n");
+                    // }
+                    // if(fs.existsSync(path.join(changes_direc, sID_MR))) {
+                    //     console.log("sID_MR exists");
+                    // }
 
-                // Indexes the correct source directory
-                console.log("\n\nSource Direcs for each");
-                let dirIndex = -1;
-                sourceDirecs.forEach((dir) => {
-                    console.log(dir);
-                    if (dir.indexOf(sID) > -1) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
-                });
-                console.log("dirIndex = " + dirIndex);
+                    // Indexes the correct source directory
+                    console.log("\n\nSource Direcs for each");
+                    let dirIndex = -1;
+                    sourceDirecs.forEach((dir) => {
+                        console.log(dir);
+                        if (dir.indexOf(sID) > -1) { console.log("dirIndex = " + sourceDirecs.indexOf(dir)); dirIndex = sourceDirecs.indexOf(dir); return; }
+                    });
+                    console.log("dirIndex = " + dirIndex);
 
-                // fs.copyFile(path.join(sourcePath, sourceDirecs[dirIndex]), path.join(changes_direc, sID_MR), fs.constants.COPYFILE_FICLONE, (err) => {
-                //     if (err) { console.log(err); }
-                // });
-                fs.renameSync(path.join(changes_direc, sID), path.join(changes_direc, sID_MR));
+                    // fs.copyFile(path.join(sourcePath, sourceDirecs[dirIndex]), path.join(changes_direc, sID_MR), fs.constants.COPYFILE_FICLONE, (err) => {
+                    //     if (err) { console.log(err); }
+                    // });
+                    fs.renameSync(path.join(changes_direc, sID), path.join(changes_direc, sID_MR));
 
-                case4fail = false;
+                    case4fail = false;
+                }
                 break;
+            }
+        }
+
+        //case 3 for real tho
+        if (case4fail) {
+            for (let sID of sourceIDs) {
+                if ((sID.includes(tIDPath)) && sID.includes(tIDName)) {
+                    case4fail = false;
+                    console.log("CASE 3\n");
+                    tID_MT = tID.substr(0, tID.lastIndexOf(".")) + "_MT" + tID.substr(tID.lastIndexOf("."));
+                    sID_MR = sID.substr(0, tID.lastIndexOf(".")) + "_MR" + tID.substr(tID.lastIndexOf("."));
+                    // debug
+                    console.log("tID: " + tID);
+                    console.log("sID: " + sID);
+
+                    fse.moveSync(path.join(repoPath, tID), path.join(changes_direc, tID_MT), function (err) {
+                        if (err) { console.log(err); }
+                    });
+                    //fs.renameSync(path.join(changes_direc, tID), path.join(changes_direc, tID_MT));
+                    fs.unlinkSync(path.join(changes_direc, sID));
+                    break;
+                }
             }
         }
 
@@ -274,13 +289,13 @@ function merge_out(sourcePath, maniPath, sourceBranch) {
 
             }); //need to put some more stuff here
         }
-        // Case 3
-        else if (sourceIDs.includes(tID) && case4fail) {
-            console.log("CASE 3\n");
-            fse.move(path.join(repoPath, tID), path.join(changes_direc, tID), function (err) {
-                if (err) { console.log(err); }
-            });
-        }
+        // // Case 3
+        // else if (sourceIDs.includes(tID) && case4fail) {
+        //     console.log("CASE 3\n");
+        //     fse.move(path.join(repoPath, tID), path.join(changes_direc, tID), function (err) {
+        //         if (err) { console.log(err); }
+        //     });
+        // }
     }
     // console.log("calling clean up: ");
     // clean_up(changes_direc);
@@ -392,6 +407,8 @@ function find_grandma(sourceBranch, repoBranches, maniname) {
     console.log("\n\ngMA:" + gMA + "\n\n");
     ret = "." + gMA + ".txt";
     console.log("ret: " + ret);
+
+
     return ret;
 }
 

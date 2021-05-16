@@ -72,9 +72,9 @@
     <!-- Labeling Button -->
     <div class="labeling">
         <form action="/get_label_form" method="GET">
-            <label for="path"><br>Target Path Directory:<br>
+            <label for="path"><br>Manifest Path Directory:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
-                    name="target_path" placeholder="Input target path here" required /><br></label><br>
+                    name="target_path" placeholder="Input Manifest file path here" required /><br></label><br>
             <label for="path"><br>Label Name:<br>
                 <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
                     name="label_name" placeholder="Input label name here" required /><br></label><br>
@@ -86,10 +86,10 @@
     <div class="listing">
         <form action="/get_listing_form" method="GET">
             <label for="path"><br>Repo Path Directory:<br>
-            <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1" name="repo_path"
-                placeholder="Input repo path here" required />
-            <br><br>
-            <input class="pill" id="cr" type="submit" value="Listing" />
+                <input type="text" id="repo" size="50" font-family: "Garamond, serif" cols="50" rows="1"
+                    name="repo_path" placeholder="Input repo path here" required />
+                <br><br>
+                <input class="pill" id="cr" type="submit" value="Listing" />
         </form>
     </div>
 
