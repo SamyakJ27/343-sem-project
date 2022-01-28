@@ -1,5 +1,5 @@
 # Version Control System
-## Gung Hoes - James, Samyak, Rishika, Rifat
+## Authors - James, Samyak, Rishika, Rifat
 ### CECS 343 - Sec 06 
 
 ---
